@@ -1,0 +1,545 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["users", "subscriptions", "payments", "configuration", "animals", "sante", "enclos", "oeufs", "couvaison", "alimentation", "vente", "finances"]
+}
+
+// =====================
+// USERS SCHEMA
+// =====================
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  firstName String
+  lastName  String
+  farmName  String
+  role      UserRole  @default(OWNER)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastLogin DateTime?
+
+  subscriptions Subscription[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+  @@schema("users")
+}
+
+enum UserRole {
+  OWNER
+  WORKER
+  ADMIN
+
+  @@schema("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@schema("users")
+}
+
+// =====================
+// SUBSCRIPTIONS SCHEMA
+// =====================
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String
+  planId           String
+  status           SubscriptionStatus @default(ACTIVE)
+  startDate        DateTime           @default(now())
+  endDate          DateTime
+  renewalFrequency RenewalFrequency   @default(MONTHLY)
+  amountPaid       Float
+  isAutoRenew      Boolean            @default(true)
+  cancelledAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@unique([userId, status])
+  @@map("subscriptions")
+  @@schema("subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+
+  @@schema("subscriptions")
+}
+
+enum RenewalFrequency {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+
+  @@schema("subscriptions")
+}
+
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  price       Float
+  maxAnimals  Int      @default(-1)
+  maxUsers    Int      @default(1)
+  features    String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+  @@schema("subscriptions")
+}
+
+// =====================
+// PAYMENTS SCHEMA
+// =====================
+model Payment {
+  id             String        @id @default(cuid())
+  subscriptionId String
+  transactionId  String        @unique
+  amount         Float
+  currency       String        @default("EUR")
+  paymentMethod  PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  paidAt         DateTime?
+  failureReason  String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+  @@schema("payments")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  PAYPAL
+
+  @@schema("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+
+  @@schema("payments")
+}
+
+// =====================
+// CONFIGURATION SCHEMA
+// =====================
+model ConfigVaccinConstante {
+  id          String   @id @default(cuid())
+  nom         String   @unique
+  description String?
+  age_mois    Int
+  rappel_mois Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("config_vaccin_constantes")
+  @@schema("configuration")
+}
+
+model ConfigMedicamentConstante {
+  id          String   @id @default(cuid())
+  nom         String   @unique
+  description String?
+  dosage      String
+  duree_jours Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("config_medicament_constantes")
+  @@schema("configuration")
+}
+
+model ConfigCouvaisonDuration {
+  id           String   @id @default(cuid())
+  durationDays Int      @default(21)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("config_couvaison_duration")
+  @@schema("configuration")
+}
+
+model ConfigRaceConstante {
+  id          String   @id @default(cuid())
+  nom         String   @unique
+  description String?
+  type        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("config_race_constantes")
+  @@schema("configuration")
+}
+
+model ConfigTypeEnclosConstante {
+  id          String   @id @default(cuid())
+  nom         String   @unique
+  description String?
+  capaciteMax Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("config_type_enclos_constantes")
+  @@schema("configuration")
+}
+
+model ConfigCategorieOeufConstante {
+  id        String   @id @default(cuid())
+  nom       String   @unique
+  poids_min Int
+  poids_max Int
+  prix      Float
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("config_categorie_oeuf_constantes")
+  @@schema("configuration")
+}
+
+// =====================
+// ANIMAL SCHEMA
+// =====================
+model Animal {
+  id            String     @id @default(cuid())
+  farmId        String
+  numIdentif    String     @unique
+  race          String
+  sexe          Sexe
+  dateNaissance DateTime
+  dateArrivee   DateTime   @default(now())
+  etat          EtatAnimal @default(ACTIF)
+  poids         Float?
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("animals")
+  @@schema("animals")
+}
+
+enum Sexe {
+  MALE
+  FEMELLE
+
+  @@schema("animals")
+}
+
+enum EtatAnimal {
+  POUSSIN
+  JEUNE
+  REPRODUCTRICE
+  EN_REPOS
+  RETRAITE
+  DECEDE
+  ACTIF
+
+  @@schema("animals")
+}
+
+// =====================
+// SANTE SCHEMA
+// =====================
+model SanteHistorique {
+  id             String    @id @default(cuid())
+  animalId       String
+  type           TypeSante
+  nomTraitement  String
+  description    String?
+  dateAdminion   DateTime  @default(now())
+  prochainRappel DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("sante_historiques")
+  @@schema("sante")
+}
+
+enum TypeSante {
+  VACCIN
+  MEDICAMENT
+  OBSERVATION
+
+  @@schema("sante")
+}
+
+model NotificationSante {
+  id         String   @id @default(cuid())
+  farmId     String
+  animalId   String
+  type       String
+  message    String
+  dateRappel DateTime
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("notification_sante")
+  @@schema("sante")
+}
+
+// =====================
+// ENCLOS SCHEMA
+// =====================
+model Enclos {
+  id           String   @id @default(cuid())
+  farmId       String
+  nom          String
+  type         String
+  capaciteMax  Int
+  localisation String?
+  temperature  Float?
+  humidite     Float?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  animauxActuels AnimalEnclosAssociation[]
+
+  @@map("enclos")
+  @@schema("enclos")
+}
+
+model AnimalEnclosAssociation {
+  id         String    @id @default(cuid())
+  enclosId   String
+  animalNum  String
+  dateEntree DateTime  @default(now())
+  dateSortie DateTime?
+  notes      String?
+
+  enclos Enclos @relation(fields: [enclosId], references: [id], onDelete: Cascade)
+
+  @@map("animal_enclos_associations")
+  @@schema("enclos")
+}
+
+// =====================
+// OEUF SCHEMA
+// =====================
+model OeufProduit {
+  id             String      @id @default(cuid())
+  animalId       String
+  farmId         String
+  dateProduction DateTime    @default(now())
+  categorie      String
+  poids          Int
+  qualite        QualiteOeuf
+  stockageId     String?
+  vendu          Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@map("oeuf_produits")
+  @@schema("oeufs")
+}
+
+enum QualiteOeuf {
+  EXCELLENT
+  BON
+  NORMAL
+  DEFAUT
+  REJETE
+
+  @@schema("oeufs")
+}
+
+// =====================
+// COUVAISON SCHEMA
+// =====================
+model Couvaison {
+  id             String     @id @default(cuid())
+  animalId       String
+  farmId         String
+  dateDebut      DateTime   @default(now())
+  dateFin        DateTime?
+  nombreOeufs    Int
+  nombrePoussins Int        @default(0)
+  tauxReussite   Float      @default(0)
+  note           NoteCouvai @default(C)
+  dureeJours     Int
+  notes          String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("couvaisons")
+  @@schema("couvaison")
+}
+
+enum NoteCouvai {
+  A
+  B
+  C
+  D
+  E
+
+  @@schema("couvaison")
+}
+
+// =====================
+// ALIMENTATION SCHEMA
+// =====================
+model FormuleAlimentation {
+  id          String   @id @default(cuid())
+  farmId      String
+  nom         String
+  description String?
+  ingredients String[]
+  prix        Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("formule_alimentations")
+  @@schema("alimentation")
+}
+
+model DistributionAlimentation {
+  id        String   @id @default(cuid())
+  farmId    String
+  formuleId String
+  quantite  Int
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("distribution_alimentations")
+  @@schema("alimentation")
+}
+
+// =====================
+// VENTE SCHEMA
+// =====================
+model Commande {
+  id             String         @id @default(cuid())
+  farmId         String
+  clientId       String
+  dateCommande   DateTime       @default(now())
+  dateExpedition DateTime?
+  total          Float
+  statut         StatutCommande @default(EN_ATTENTE)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  client Client          @relation(fields: [clientId], references: [id])
+  items  LigneCommande[]
+
+  @@map("commandes")
+  @@schema("vente")
+}
+
+enum StatutCommande {
+  EN_ATTENTE
+  CONFIRMEE
+  LIVREE
+  ANNULEE
+
+  @@schema("vente")
+}
+
+model Client {
+  id         String   @id @default(cuid())
+  farmId     String
+  nom        String
+  email      String
+  telephone  String?
+  adresse    String?
+  ville      String?
+  codePostal String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  commandes Commande[]
+
+  @@map("clients")
+  @@schema("vente")
+}
+
+model LigneCommande {
+  id           String   @id @default(cuid())
+  commandeId   String
+  description  String
+  quantite     Int
+  prixUnitaire Float
+  createdAt    DateTime @default(now())
+
+  commande Commande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
+
+  @@map("ligne_commandes")
+  @@schema("vente")
+}
+
+// =====================
+// FINANCES SCHEMA
+// =====================
+model Transaction {
+  id          String          @id @default(cuid())
+  farmId      String
+  type        TypeTransaction
+  description String
+  montant     Float
+  date        DateTime        @default(now())
+  categorie   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("transactions")
+  @@schema("finances")
+}
+
+enum TypeTransaction {
+  REVENU
+  DEPENSE
+
+  @@schema("finances")
+}
+
+model Solde {
+  id        String   @id @default(cuid())
+  farmId    String   @unique
+  total     Float    @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("soldes")
+  @@schema("finances")
+}

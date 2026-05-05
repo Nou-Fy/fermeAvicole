@@ -1,0 +1,40 @@
+{
+  "name": "ferme-avicole-project",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Application monolithique Next.js pour la gestion d'une ferme avicole",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma db push --force-reset && npm run db:seed",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "next": "^14.2.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.35",
+    "prisma": "5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.3"
+  }
+}
