@@ -13,7 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import type { DashboardOverview } from "@/types/dashboard";
 
-type DashboardActionMethod = "POST" | "PUT" | "DELETE";
+export type DashboardActionMethod = "GET" | "POST" | "DELETE" | "PATCH" | "PUT";
 
 export type DashboardContextValue = {
   data: DashboardOverview | null;

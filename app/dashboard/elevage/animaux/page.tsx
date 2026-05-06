@@ -32,14 +32,7 @@ export default function ElevageAnimauxPage() {
     notes: "",
   });
 
-  // Initialiser l'animal sélectionné quand les données arrivent
-  useEffect(() => {
-    if (!data?.animals[0] || animalUpdateForm.animalId) return;
-    setAnimalUpdateForm((current) => ({
-      ...current,
-      animalId: data.animals[0].id,
-    }));
-  }, [data?.animals]);
+  // Initialiser avec un animal vide (on le remplit quand on clique "Mettre à jour")
 
   // Fermer modales avec ESC
   useEffect(() => {
@@ -108,12 +101,6 @@ export default function ElevageAnimauxPage() {
         style={{ display: "flex", gap: "1rem" }}>
         <button className="button" onClick={() => toggleModal("create")}>
           Ajouter un animal
-        </button>
-        <button
-          className="button"
-          onClick={() => toggleModal("update")}
-          disabled={data.animals.length === 0}>
-          Mettre à jour un animal
         </button>
       </div>
 
@@ -266,7 +253,13 @@ export default function ElevageAnimauxPage() {
             zIndex: 1000,
           }}>
           <SectionCard
-            title="Mettre a jour un animal"
+            title={`Mettre a jour: ${
+              data.animals.find((a) => a.id === animalUpdateForm.animalId)
+                ?.numIdentif || ""
+            } · ${
+              data.animals.find((a) => a.id === animalUpdateForm.animalId)
+                ?.race || ""
+            }`}
             hint="Poids, etat ou commentaire">
             {data.animals.length === 0 ? (
               <EmptyState message="Ajoutez d'abord un animal." />
@@ -289,24 +282,6 @@ export default function ElevageAnimauxPage() {
                   );
                 }}>
                 <div className="form-grid">
-                  <div className="field">
-                    <label className="label">Animal</label>
-                    <select
-                      className="select"
-                      value={animalUpdateForm.animalId}
-                      onChange={(event) =>
-                        setAnimalUpdateForm((current) => ({
-                          ...current,
-                          animalId: event.target.value,
-                        }))
-                      }>
-                      {data.animals.map((animal) => (
-                        <option key={animal.id} value={animal.id}>
-                          {animal.numIdentif} · {animal.race}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                   <div className="field">
                     <label className="label">Poids (kg)</label>
                     <input
@@ -408,22 +383,41 @@ export default function ElevageAnimauxPage() {
                 <span className="helper">
                   Ne le {formatDate(animal.dateNaissance)}
                 </span>
-                {animal.etat !== "DECEDE" ? (
+                <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button
                     className="button-ghost"
-                    disabled={pending}
-                    onClick={() =>
-                      void submitAction(
-                        `/api/animals/${animal.id}`,
-                        "DELETE",
-                        undefined,
-                        "Animal archive comme decede.",
-                      )
-                    }
+                    onClick={() => {
+                      setAnimalUpdateForm({
+                        animalId: animal.id,
+                        poids: animal.poids?.toString() || "",
+                        etat: animal.etat,
+                        notes: animal.notes || "",
+                      });
+                      toggleModal("update");
+                    }}
                     type="button">
-                    Marquer decede
+                    Mettre à jour
                   </button>
-                ) : null}
+                  {animal.etat !== "DECEDE" ? (
+                    <button
+                      className="button-ghost"
+                      disabled={pending}
+                      onClick={() =>
+                        void submitAction(
+                          `/api/animals/${animal.id}`,
+                          "PATCH",
+                          {
+                            status: "deceased",
+                            reason: "Animal archive comme decede.",
+                          },
+                          "L'animal a été marqué comme décédé.", // Message de succès
+                        )
+                      }
+                      type="button">
+                      Marquer decede
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>

@@ -244,6 +244,8 @@ model Animal {
   numIdentif    String     @unique
   race          String
   sexe          Sexe
+  status        String     @default("alive")
+  deathDate     DateTime?
   dateNaissance DateTime
   dateArrivee   DateTime   @default(now())
   etat          EtatAnimal @default(ACTIF)

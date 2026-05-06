@@ -80,50 +80,50 @@ function noteToNumber(note: string) {
   return mapping[note] ?? 0;
 }
 
-function toAnimalView(
-  animal: {
-    id: string;
-    farmId: string;
-    numIdentif: string;
-    race: string;
-    sexe: Prisma.JsonValue | string;
-    dateNaissance: Date;
-    dateArrivee: Date;
-    etat: Prisma.JsonValue | string;
-    poids: number | null;
-    notes: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  },
-): AnimalView {
+function toAnimalView(animal: {
+  id: string;
+  farmId: string;
+  numIdentif: string;
+  race: string;
+  sexe: Prisma.JsonValue | string;
+  dateNaissance: Date;
+  dateArrivee: Date;
+  etat: Prisma.JsonValue | string;
+  poids: number | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  status: string;
+  deathDate: Date | null;
+}): AnimalView {
   const ageMois = calculateAgeMonths(animal.dateNaissance);
 
   return {
     ...animal,
+    // Assure-toi que status est bien transmis
+    status: animal.status || "alive",
+    deathDate: animal.deathDate || null,
     sexe: animal.sexe as AnimalView["sexe"],
     etat: animal.etat as AnimalView["etat"],
     ageMois,
     etatParAge: calculateAnimalStateByAge(ageMois),
   };
 }
-
-function toCouvaisonView(
-  couvaison: {
-    id: string;
-    animalId: string;
-    farmId: string;
-    dateDebut: Date;
-    dateFin: Date | null;
-    nombreOeufs: number;
-    nombrePoussins: number;
-    tauxReussite: number;
-    note: string;
-    dureeJours: number;
-    notes: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  },
-): CouvaisonView {
+function toCouvaisonView(couvaison: {
+  id: string;
+  animalId: string;
+  farmId: string;
+  dateDebut: Date;
+  dateFin: Date | null;
+  nombreOeufs: number;
+  nombrePoussins: number;
+  tauxReussite: number;
+  note: string;
+  dureeJours: number;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): CouvaisonView {
   const performanceScore = couvaison.dateFin
     ? (couvaison.nombrePoussins / Math.max(couvaison.nombreOeufs, 1)) *
       noteToNumber(couvaison.note)
@@ -584,7 +584,9 @@ export async function listAnimalOeufs(userId: string, animalId: string) {
   });
 
   const total = oeufs.length;
-  const excellents = oeufs.filter((oeuf) => oeuf.qualite === "EXCELLENT").length;
+  const excellents = oeufs.filter(
+    (oeuf) => oeuf.qualite === "EXCELLENT",
+  ).length;
 
   return {
     total,
@@ -681,7 +683,8 @@ export async function finishCouvaison(
     data: {
       dateFin: new Date(),
       nombrePoussins: input.nombrePoussins,
-      note: (input.note || autoCouvaisonNote(tauxReussite)) as CouvaisonView["note"],
+      note: (input.note ||
+        autoCouvaisonNote(tauxReussite)) as CouvaisonView["note"],
       tauxReussite,
     },
   });
@@ -1038,7 +1041,9 @@ export async function getDashboardData(
     listOeufCategories(),
   ]);
 
-  const couvaisons = couvaisonsRaw.map((couvaison) => toCouvaisonView(couvaison));
+  const couvaisons = couvaisonsRaw.map((couvaison) =>
+    toCouvaisonView(couvaison),
+  );
   const monthlyProfit = transactions
     .filter((transaction) => {
       const now = new Date();
@@ -1119,7 +1124,8 @@ export async function createManualPayment(
     throw new Error("Abonnement introuvable.");
   }
 
-  const { createPayment } = await import("@/lib/server/services/subscription-service");
+  const { createPayment } =
+    await import("@/lib/server/services/subscription-service");
   return createPayment(
     input.subscriptionId,
     input.amount,
