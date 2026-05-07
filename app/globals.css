@@ -433,11 +433,19 @@ p {
   gap: 1rem;
 }
 
+/* ============================================
+   DASHBOARD LAYOUT - DESKTOP (320px + 1fr)
+   ============================================ */
+
 .dashboard-app {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
   min-height: 100vh;
 }
+
+/* ============================================
+   SIDEBAR - DESKTOP (sticky, visible)
+   ============================================ */
 
 .dashboard-sidebar {
   position: sticky;
@@ -451,18 +459,12 @@ p {
   background: var(--surface-nav);
   backdrop-filter: blur(14px);
   transition: transform 0.3s ease;
+  overflow-y: auto;
 }
 
-.dashboard-sidebar--open {
-  transform: translateX(0);
-}
-
-.dashboard-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
+/* ============================================
+   HAMBURGER - DESKTOP (hidden)
+   ============================================ */
 
 .dashboard-hamburger {
   display: none;
@@ -474,6 +476,7 @@ p {
   border: none;
   cursor: pointer;
   padding: 0;
+  gap: 0;
 }
 
 .dashboard-hamburger span {
@@ -495,6 +498,31 @@ p {
 .dashboard-hamburger--open span:nth-child(3) {
   transform: rotate(-45deg) translate(7px, -6px);
 }
+
+/* ============================================
+   OVERLAY - Hidden by default
+   ============================================ */
+
+.dashboard-overlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   SIDEBAR COMPONENTS
+   ============================================ */
 
 .dashboard-sidebar-head {
   display: grid;
@@ -556,6 +584,10 @@ p {
   background: rgba(188, 122, 40, 0.14);
   border-color: rgba(188, 122, 40, 0.16);
 }
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
 
 .dashboard-main {
   min-width: 0;
@@ -721,7 +753,56 @@ p {
   }
 }
 
+/* ============================================
+   RESPONSIVE - TABLET/MOBILE (max-width: 980px)
+   ============================================ */
+
 @media (max-width: 980px) {
+  /* ← Layout passe à 1 colonne */
+  .dashboard-app {
+    grid-template-columns: 1fr;
+  }
+
+  /* ← Sidebar devient fixed ET hors du grid */
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 9999;
+    background: var(--surface-strong);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.3s ease,
+      visibility 0.3s;
+    padding: 1.5rem 1.1rem;
+    gap: 1.4rem;
+    align-content: start;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  /* ← Sidebar visible au clic */
+  .dashboard-sidebar.dashboard-sidebar--open {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ← Hamburger visible */
+  .dashboard-hamburger {
+    display: flex;
+    z-index: 10000;
+  }
+
+  .dashboard-topbar {
+    padding-left: 0.5rem;
+  }
+
+  /* ← Grids responsifs */
   .hero-grid,
   .stats-grid,
   .info-grid,
@@ -735,29 +816,11 @@ p {
   .hero-stats {
     grid-template-columns: 1fr;
   }
-
-  .dashboard-app {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 320px;
-    z-index: 1000;
-    transform: translateX(-100%);
-    border-right: 1px solid var(--line);
-  }
-
-  .dashboard-hamburger {
-    display: flex;
-  }
-
-  .dashboard-topbar {
-    padding-left: 3rem; /* space for hamburger */
-  }
 }
+
+/* ============================================
+   RESPONSIVE - PETIT MOBILE (max-width: 760px)
+   ============================================ */
 
 @media (max-width: 760px) {
   .form-grid {
@@ -798,10 +861,13 @@ p {
   }
 }
 
+/* ============================================
+   MODAL
+   ============================================ */
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
