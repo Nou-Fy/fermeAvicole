@@ -31,14 +31,28 @@ export function DashboardShell({
   const dashboard = useDashboard();
   const activeSection = getActiveDashboardSection(pathname);
   const currentUser = dashboard.data?.user ?? user;
+
+  // État pour gérer l'ouverture du menu mobile
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="dashboard-app">
+      {/* Overlay sombre : s'affiche quand le menu est ouvert (mobile uniquement) */}
+      {isMenuOpen && (
+        <div
+          className="dashboard-overlay"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar avec classe dynamique */}
       <aside
         className={`dashboard-sidebar ${isMenuOpen ? "dashboard-sidebar--open" : ""}`}>
         <div className="dashboard-sidebar-head">
-          <Link className="brand" href="/dashboard/overview">
+          <Link
+            className="brand"
+            href="/dashboard/overview"
+            onClick={() => setIsMenuOpen(false)}>
             <span className="brand-mark" />
             <span>Ferme Avicole</span>
           </Link>
@@ -84,20 +98,15 @@ export function DashboardShell({
         </nav>
       </aside>
 
-      {isMenuOpen && (
-        <div
-          className="dashboard-overlay"
-          onClick={() => setIsMenuOpen(false)}
-        />
-      )}
-
+      {/* Main content area */}
       <div className="dashboard-main">
         <header className="dashboard-topbar">
+          {/* Bouton Hamburger */}
           <button
             className={`dashboard-hamburger ${isMenuOpen ? "dashboard-hamburger--open" : ""}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             type="button"
-            aria-label="Toggle navigation menu">
+            aria-label="Menu">
             <span />
             <span />
             <span />
@@ -123,28 +132,28 @@ export function DashboardShell({
               className="button-secondary"
               onClick={() => void dashboard.logout()}
               type="button">
-              Se deconnecter
+              Se déconnecter
             </button>
           </div>
         </header>
 
-        {dashboard.flash ? (
+        {/* Zones d'alertes */}
+        {dashboard.flash && (
           <div className="alert alert-success" onClick={dashboard.clearFlash}>
             {dashboard.flash}
           </div>
-        ) : null}
+        )}
 
-        {dashboard.error ? (
+        {dashboard.error && (
           <div className="alert alert-error" onClick={dashboard.clearError}>
             {dashboard.error}
           </div>
-        ) : null}
+        )}
 
         <div className="dashboard-content">{children}</div>
 
         <footer className="footer-note">
-          Monolithe Next.js, Prisma et PostgreSQL local. Aucun service Docker
-          requis.
+          Monolithe Next.js, Prisma et PostgreSQL local.
         </footer>
       </div>
     </div>
