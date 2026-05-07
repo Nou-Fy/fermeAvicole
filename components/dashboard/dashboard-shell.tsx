@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -30,10 +31,12 @@ export function DashboardShell({
   const dashboard = useDashboard();
   const activeSection = getActiveDashboardSection(pathname);
   const currentUser = dashboard.data?.user ?? user;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="dashboard-app">
-      <aside className="dashboard-sidebar">
+      <aside
+        className={`dashboard-sidebar ${isMenuOpen ? "dashboard-sidebar--open" : ""}`}>
         <div className="dashboard-sidebar-head">
           <Link className="brand" href="/dashboard/overview">
             <span className="brand-mark" />
@@ -52,7 +55,7 @@ export function DashboardShell({
                     : "dashboard-nav-link"
                 }
                 href={item.href}
-              >
+                onClick={() => setIsMenuOpen(false)}>
                 <strong>{item.label}</strong>
                 {item.description ? (
                   <span className="helper">{item.description}</span>
@@ -70,7 +73,7 @@ export function DashboardShell({
                           : "dashboard-subnav-link"
                       }
                       href={child.href}
-                    >
+                      onClick={() => setIsMenuOpen(false)}>
                       {child.label}
                     </Link>
                   ))}
@@ -81,8 +84,25 @@ export function DashboardShell({
         </nav>
       </aside>
 
+      {isMenuOpen && (
+        <div
+          className="dashboard-overlay"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
       <div className="dashboard-main">
         <header className="dashboard-topbar">
+          <button
+            className={`dashboard-hamburger ${isMenuOpen ? "dashboard-hamburger--open" : ""}`}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            type="button"
+            aria-label="Toggle navigation menu">
+            <span />
+            <span />
+            <span />
+          </button>
+
           <div className="stack" style={{ gap: "0.2rem" }}>
             <strong>
               {currentUser.firstName} {currentUser.lastName}
@@ -96,15 +116,13 @@ export function DashboardShell({
               className="button-ghost"
               disabled={dashboard.pending}
               onClick={() => void dashboard.refresh()}
-              type="button"
-            >
+              type="button">
               Actualiser
             </button>
             <button
               className="button-secondary"
               onClick={() => void dashboard.logout()}
-              type="button"
-            >
+              type="button">
               Se deconnecter
             </button>
           </div>

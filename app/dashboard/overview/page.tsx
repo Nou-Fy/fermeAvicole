@@ -21,10 +21,14 @@ export default function DashboardOverviewPage() {
         const subscriptionTone =
           data.subscription?.status === "ACTIVE" ? "success" : "warn";
 
+        const fermeActive = data.user.farmName
+          ? data.user.farmName
+          : "Creer une ferme pour commencer";
+
         return (
           <div className="stack page-section">
             <PageHeader
-              eyebrow="Dashboard unifie"
+              eyebrow={`Dashboard de ${fermeActive}`}
               title="Vue d'ensemble"
               description="Lecture rapide des signaux essentiels de la ferme et acces direct aux domaines metier.">
               <Link className="button" href="/dashboard/elevage/animaux">
@@ -159,21 +163,6 @@ export default function DashboardOverviewPage() {
                 </div>
               </SectionCard>
             </div>
-
-            <SectionCard
-              title="Acces rapides"
-              hint="Les anciennes sections sont maintenant de vraies pages">
-              <div className="link-grid">
-                {dashboardNavigation
-                  .filter((item) => item.key !== "overview")
-                  .map((item) => (
-                    <Link key={item.key} className="link-card" href={item.href}>
-                      <strong>{item.label}</strong>
-                      <span className="helper">{item.description}</span>
-                    </Link>
-                  ))}
-              </div>
-            </SectionCard>
           </div>
         );
       }}
