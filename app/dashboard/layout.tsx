@@ -24,8 +24,7 @@ export default async function DashboardLayout({
           lastName: currentUser.lastName,
           farmName: currentUser.farmName,
           email: currentUser.email,
-        }}
-      >
+        }}>
         {children}
       </DashboardShell>
     </DashboardProvider>

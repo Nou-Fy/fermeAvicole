@@ -76,7 +76,7 @@ export default function ElevageEnclosPage() {
       <PageHeader
         title="Enclos"
         description="Gestion de l'espace physique et conditions climatiques.">
-        <Link className="button-ghost" href="/dashboard/elevage/enclos">
+        <Link className="button-ghost" href="/dashboard/elevage/animaux">
           Aller aux animaux
         </Link>
       </PageHeader>
