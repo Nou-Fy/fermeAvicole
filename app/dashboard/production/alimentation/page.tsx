@@ -41,7 +41,11 @@ export default function ProductionAlimentationPage() {
   }
 
   if (!data) {
-    return <div className="alert alert-error">{error || "Donnees indisponibles."}</div>;
+    return (
+      <div className="alert alert-error">
+        {error || "Donnees indisponibles."}
+      </div>
+    );
   }
 
   return (
@@ -80,8 +84,7 @@ export default function ProductionAlimentationPage() {
                   prix: "",
                 });
               }
-            }}
-          >
+            }}>
             <div className="form-grid">
               <div className="field">
                 <label className="label">Nom de la formule</label>
@@ -114,7 +117,9 @@ export default function ProductionAlimentationPage() {
                 />
               </div>
               <div className="field field-full">
-                <label className="label">Ingredients (separes par des virgules)</label>
+                <label className="label">
+                  Ingredients (separes par des virgules)
+                </label>
                 <input
                   className="input"
                   value={formuleForm.ingredients}
@@ -172,8 +177,7 @@ export default function ProductionAlimentationPage() {
                     notes: "",
                   }));
                 }
-              }}
-            >
+              }}>
               <div className="form-grid">
                 <div className="field">
                   <label className="label">Formule</label>
@@ -185,8 +189,7 @@ export default function ProductionAlimentationPage() {
                         ...current,
                         formuleId: event.target.value,
                       }))
-                    }
-                  >
+                    }>
                     {data.formules.map((formule) => (
                       <option key={formule.id} value={formule.id}>
                         {formule.nom}
@@ -223,7 +226,10 @@ export default function ProductionAlimentationPage() {
                   />
                 </div>
               </div>
-              <button className="button-secondary" disabled={pending} type="submit">
+              <button
+                className="button-secondary"
+                disabled={pending}
+                type="submit">
                 Enregistrer la distribution
               </button>
             </form>

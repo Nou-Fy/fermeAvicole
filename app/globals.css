@@ -487,7 +487,14 @@ p {
   transition: all 0.3s ease;
 }
 
+.dashboard-hamburger--open {
+  /* Ceci pousse le CONTENEUR ENTIER vers la droite */
+  transform: translateX(calc(50vw - 50%));
+  /* ou translateX(300px) si tu veux une valeur fixe */
+}
+
 .dashboard-hamburger--open span:nth-child(1) {
+  transform-origin: left center; /* Rotation à partir du point droit */
   transform: rotate(45deg) translate(5px, 5px);
 }
 
@@ -496,7 +503,8 @@ p {
 }
 
 .dashboard-hamburger--open span:nth-child(3) {
-  transform: rotate(-45deg) translate(7px, -6px);
+  transform-origin: left; /* Rotation à partir du point droit */
+  transform: rotate(-45deg) translate(5px, -5px);
 }
 
 /* ============================================
