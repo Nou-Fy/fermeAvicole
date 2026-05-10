@@ -2,6 +2,7 @@
 
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { EmptyState } from "@/components/dashboard/empty-state";
+import { TransactionForm } from "@/components/transaction/transaction-form";
 import { PageHeader, SectionCard, StatBlock } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useState } from "react";
@@ -24,7 +25,11 @@ export default function FinancesTransactionsPage() {
   }
 
   if (!data) {
-    return <div className="alert alert-error">{error || "Donnees indisponibles."}</div>;
+    return (
+      <div className="alert alert-error">
+        {error || "Donnees indisponibles."}
+      </div>
+    );
   }
 
   return (
@@ -36,111 +41,33 @@ export default function FinancesTransactionsPage() {
 
       <div className="dashboard-grid">
         <SectionCard title="Nouvelle transaction" hint="Depense ou revenu">
-          <form
-            className="stack"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const ok = await submitAction(
-                "/api/transaction",
-                "POST",
-                {
-                  ...transactionForm,
-                  montant: Number(transactionForm.montant),
-                },
-                "Transaction ajoutee.",
-              );
-
-              if (ok) {
-                setTransactionForm({
-                  type: "REVENU",
-                  description: "",
-                  montant: "",
-                  categorie: "",
-                });
-              }
-            }}
-          >
-            <div className="form-grid">
-              <div className="field">
-                <label className="label">Type</label>
-                <select
-                  className="select"
-                  value={transactionForm.type}
-                  onChange={(event) =>
-                    setTransactionForm((current) => ({
-                      ...current,
-                      type: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="REVENU">Revenu</option>
-                  <option value="DEPENSE">Depense</option>
-                </select>
-              </div>
-              <div className="field">
-                <label className="label">Categorie</label>
-                <input
-                  className="input"
-                  value={transactionForm.categorie}
-                  onChange={(event) =>
-                    setTransactionForm((current) => ({
-                      ...current,
-                      categorie: event.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-              <div className="field field-full">
-                <label className="label">Description</label>
-                <input
-                  className="input"
-                  value={transactionForm.description}
-                  onChange={(event) =>
-                    setTransactionForm((current) => ({
-                      ...current,
-                      description: event.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-              <div className="field">
-                <label className="label">Montant</label>
-                <input
-                  className="input"
-                  type="number"
-                  step="0.01"
-                  value={transactionForm.montant}
-                  onChange={(event) =>
-                    setTransactionForm((current) => ({
-                      ...current,
-                      montant: event.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-            </div>
-            <button className="button" disabled={pending} type="submit">
-              Ajouter la transaction
-            </button>
-          </form>
+          <TransactionForm />
         </SectionCard>
 
         <SectionCard title="Solde et rapport">
           <div className="triple-grid">
-            <StatBlock label="Solde actuel" value={formatCurrency(data.solde.total)} />
-            <StatBlock label="Revenus" value={formatCurrency(data.rapport.revenus)} />
-            <StatBlock label="Depenses" value={formatCurrency(data.rapport.depenses)} />
+            <StatBlock
+              label="Solde actuel"
+              value={formatCurrency(data.solde.total)}
+            />
+            <StatBlock
+              label="Revenus"
+              value={formatCurrency(data.rapport.revenus)}
+            />
+            <StatBlock
+              label="Depenses"
+              value={formatCurrency(data.rapport.depenses)}
+            />
           </div>
           <div className="list">
-            {Object.entries(data.rapport.parCategorie).map(([category, amount]) => (
-              <div key={category} className="list-item">
-                <strong>{category}</strong>
-                <span className="helper">{formatCurrency(amount)}</span>
-              </div>
-            ))}
+            {Object.entries(data.rapport.parCategorie).map(
+              ([category, amount]) => (
+                <div key={category} className="list-item">
+                  <strong>{category}</strong>
+                  <span className="helper">{formatCurrency(amount)}</span>
+                </div>
+              ),
+            )}
             {Object.keys(data.rapport.parCategorie).length === 0 ? (
               <EmptyState message="Aucune ventilation par categorie pour le moment." />
             ) : null}
