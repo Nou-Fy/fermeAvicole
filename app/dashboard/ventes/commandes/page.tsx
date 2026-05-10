@@ -6,9 +6,49 @@ import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { PageHeader, SectionCard, StatusBadge } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { TransactionForm } from "@/components/transaction/transaction-form";
+import { Modal } from "@/components/ui/Modal";
 
 export default function VentesCommandesPage() {
   const { data, loading, pending, error, submitAction } = useDashboard();
+
+  const [selectedCommande, setSelectedCommande] = useState<{
+    total: number;
+    id: string;
+  } | null>(null);
+
+  const [paymentState, setPaymentState] = useState<
+    "idle" | "pending" | "error"
+  >("idle");
+
+  const handlePaymentSuccess = async (
+    transactionId: string,
+    montant: number,
+  ) => {
+    // 2. Le paiement est créé → maintenant marquer comme livré
+    setPaymentState("pending");
+
+    const ok = await submitAction(
+      `/api/commande/${selectedCommande!.id}/statut`,
+      "PUT",
+      {
+        statut: "LIVREE",
+        transactionId,
+      },
+      "Commande marquée comme livrée.",
+    );
+
+    if (ok) {
+      // 3. Les deux sont réussis → fermer le modal
+      setSelectedCommande(null);
+      setPaymentState("idle");
+    } else {
+      // ERREUR : paiement ok mais statut failed
+      setPaymentState("error");
+      // Tu dois afficher : "Paiement réussi mais erreur lors de la mise à jour du statut"
+    }
+  };
+
   const [commandeForm, setCommandeForm] = useState({
     clientId: "",
     description: "",
@@ -37,7 +77,11 @@ export default function VentesCommandesPage() {
   }
 
   if (!data) {
-    return <div className="alert alert-error">{error || "Donnees indisponibles."}</div>;
+    return (
+      <div className="alert alert-error">
+        {error || "Donnees indisponibles."}
+      </div>
+    );
   }
 
   return (
@@ -47,7 +91,9 @@ export default function VentesCommandesPage() {
         description="Page dediee a la creation et a la progression des commandes."
       />
 
-      <SectionCard title="Creer une commande" hint="Une ligne d'article pour demarrer vite">
+      <SectionCard
+        title="Creer une commande"
+        hint="Une ligne d'article pour demarrer vite">
         {data.clients.length === 0 ? (
           <EmptyState message="Ajoutez d'abord un client." />
         ) : (
@@ -84,8 +130,7 @@ export default function VentesCommandesPage() {
                   notes: "",
                 }));
               }
-            }}
-          >
+            }}>
             <div className="form-grid">
               <div className="field">
                 <label className="label">Client</label>
@@ -97,8 +142,7 @@ export default function VentesCommandesPage() {
                       ...current,
                       clientId: event.target.value,
                     }))
-                  }
-                >
+                  }>
                   {data.clients.map((client) => (
                     <option key={client.id} value={client.id}>
                       {client.nom}
@@ -165,7 +209,10 @@ export default function VentesCommandesPage() {
                 />
               </div>
             </div>
-            <button className="button-secondary" disabled={pending} type="submit">
+            <button
+              className="button-secondary"
+              disabled={pending}
+              type="submit">
               Enregistrer la commande
             </button>
           </form>
@@ -187,33 +234,52 @@ export default function VentesCommandesPage() {
                   />
                 </div>
                 <span className="helper">
-                  Total {formatCurrency(commande.total)} · {formatDate(commande.dateCommande)}
+                  Total {formatCurrency(commande.total)} ·{" "}
+                  {formatDate(commande.dateCommande)}
                 </span>
-                <span className="helper">
-                  {commande.items.map((item) => item.description).join(", ")}
-                </span>
-                {commande.statut !== "LIVREE" ? (
+
+                <div className="group-h">
                   <button
-                    className="button-ghost"
-                    disabled={pending}
+                    className="button"
+                    disabled={commande.statut === "LIVREE"}
                     onClick={() =>
-                      void submitAction(
-                        `/api/commande/${commande.id}/statut`,
-                        "PUT",
-                        { statut: "LIVREE" },
-                        "Commande marquee comme livree.",
-                      )
-                    }
-                    type="button"
-                  >
-                    Marquer livree
+                      setSelectedCommande({
+                        total: commande.total,
+                        id: commande.id,
+                      })
+                    }>
+                    Valider LIVRE et PAYERS{" "}
                   </button>
-                ) : null}
+                </div>
               </div>
             ))}
           </div>
         )}
       </SectionCard>
+
+      {selectedCommande && (
+        <Modal
+          isOpen={!!selectedCommande}
+          title="Nouvelle Transaction"
+          onClose={() => {
+            // Fermer seulement si on n'est pas en cours de traitement
+            if (paymentState !== "pending") {
+              setSelectedCommande(null);
+            }
+          }}>
+          {paymentState === "error" && (
+            <div className="alert alert-error">
+              Paiement enregistré mais erreur lors de la validation de la
+              commande.
+            </div>
+          )}
+          <TransactionForm
+            defaultAmount={selectedCommande?.total?.toString()}
+            commandeId={selectedCommande?.id}
+            onSuccess={handlePaymentSuccess}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
