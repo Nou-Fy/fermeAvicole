@@ -8,11 +8,11 @@ type EnclosAssignFormProps = {
     enclos: Array<{
       id: string;
       nom: string;
-      // Ici, on utilise la structure réelle : animalNum et non numIdentif
       animauxActuels: Array<{ animalNum: string }>;
     }>;
     animals: Array<{ id: string; numIdentif: string }>;
   };
+  enclosId: string | null;
   pending: boolean;
   submitAction: (
     path: string,
@@ -24,52 +24,49 @@ type EnclosAssignFormProps = {
 
 export function EnclosAssignForm({
   data,
+  enclosId,
   pending,
   submitAction,
 }: EnclosAssignFormProps) {
+  // L'enclos cible est verrouillé via la prop
+  const selectedEnclos = data.enclos.find((e) => e.id === enclosId);
+
+  // Calcul immuable des animaux disponibles
   const availableAnimals = useMemo(() => {
-    // 1. On récupère les numéros occupés via 'animalNum' (la propriété réelle)
     const occupiedNumbers = new Set(
       data.enclos.flatMap((enc) =>
-        (enc.animauxActuels || [])
-          .filter((a) => a && a.animalNum) // Sécurité
-          .map((a) => a.animalNum.trim().toLowerCase()),
+        (enc.animauxActuels || []).map((a) => a.animalNum.trim().toLowerCase()),
       ),
     );
 
-    // 2. On filtre la liste globale qui, elle, utilise 'numIdentif'
-    return data.animals.filter((a) => {
-      if (!a || !a.numIdentif) return false;
-      return !occupiedNumbers.has(a.numIdentif.trim().toLowerCase());
-    });
+    return data.animals.filter(
+      (a) => !occupiedNumbers.has(a.numIdentif.trim().toLowerCase()),
+    );
   }, [data.enclos, data.animals]);
 
   const [form, setForm] = useState({
-    enclosId: data.enclos[0]?.id || "",
     animalNum: "",
   });
 
-  // Synchronisation auto du premier animal disponible
+  // Sélection automatique du premier animal disponible
   useEffect(() => {
     if (availableAnimals.length > 0 && !form.animalNum) {
-      setForm((prev) => ({
-        ...prev,
-        animalNum: availableAnimals[0].numIdentif,
-      }));
+      setForm({ animalNum: availableAnimals[0].numIdentif });
     }
   }, [availableAnimals, form.animalNum]);
 
+  if (!selectedEnclos) return <div className="alert">Enclos non spécifié.</div>;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.enclosId || !form.animalNum) return;
+    if (!form.animalNum) return;
 
-    const success = await submitAction(
-      `/api/enclos/${form.enclosId}/animal`,
+    await submitAction(
+      `/api/enclos/${selectedEnclos.id}/animal`, // Cible immuable
       "POST",
-      form,
-      "Animal affecté.",
+      { enclosId: selectedEnclos.id, animalNum: form.animalNum },
+      "Animal affecté avec succès.",
     );
-    if (success) setForm((prev) => ({ ...prev, animalNum: "" }));
   };
 
   return (
@@ -77,28 +74,24 @@ export function EnclosAssignForm({
       <div className="form-grid">
         <div className="field">
           <label className="label">Enclos de destination</label>
-          <select
-            className="select"
-            value={form.enclosId}
-            onChange={(e) => setForm({ ...form, enclosId: e.target.value })}>
-            {data.enclos.map((enclos) => (
-              <option key={enclos.id} value={enclos.id}>
-                {enclos.nom}
-              </option>
-            ))}
-          </select>
+          <input
+            className="input"
+            value={selectedEnclos.nom}
+            readOnly
+            disabled
+          />
         </div>
 
         <div className="field">
           <label className="label">
-            Animal disponible ({availableAnimals.length})
+            Animal à affecter ({availableAnimals.length} disponibles)
           </label>
           <select
             className="select"
             value={form.animalNum}
-            onChange={(e) => setForm({ ...form, animalNum: e.target.value })}
+            onChange={(e) => setForm({ animalNum: e.target.value })}
             disabled={availableAnimals.length === 0}>
-            <option value="">-- Sélectionner --</option>
+            <option value="">-- Choisir un numéro --</option>
             {availableAnimals.map((a) => (
               <option key={a.id} value={a.numIdentif}>
                 {a.numIdentif}
@@ -112,7 +105,7 @@ export function EnclosAssignForm({
         className="button"
         disabled={pending || availableAnimals.length === 0 || !form.animalNum}
         type="submit">
-        Affecter l&apos;animal
+        {pending ? "Affectation..." : "Confirmer l'affectation"}
       </button>
     </form>
   );

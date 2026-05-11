@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import type { DashboardActionMethod } from "@/components/dashboard/dashboard-provider";
 
@@ -10,6 +12,7 @@ type EnclosClimateFormProps = {
       humidite?: number | null;
     }>;
   };
+  enclosId: string | null;
   pending: boolean;
   submitAction: (
     path: string,
@@ -21,101 +24,95 @@ type EnclosClimateFormProps = {
 
 export function EnclosClimateForm({
   data,
+  enclosId,
   pending,
   submitAction,
 }: EnclosClimateFormProps) {
+  // État pour les mesures uniquement
   const [form, setForm] = useState({
-    enclosId: "",
     temperature: "",
     humidite: "",
   });
 
-  useEffect(() => {
-    if (!data || form.enclosId) {
-      return;
-    }
+  // On identifie l'enclos cible de manière immuable via la prop
+  const selectedEnclos = data.enclos.find((e) => e.id === enclosId);
 
-    const first = data.enclos[0];
-    if (first) {
+  // Synchronisation des données actuelles au chargement
+  useEffect(() => {
+    if (selectedEnclos) {
       setForm({
-        enclosId: first.id,
-        temperature: first.temperature?.toString() ?? "",
-        humidite: first.humidite?.toString() ?? "",
+        temperature: selectedEnclos.temperature?.toString() ?? "",
+        humidite: selectedEnclos.humidite?.toString() ?? "",
       });
     }
-  }, [data, form.enclosId]);
+  }, [selectedEnclos]);
 
-  if (!data || data.enclos.length === 0) {
-    return null;
+  if (!selectedEnclos) {
+    return <div className="alert">Enclos non trouvé.</div>;
   }
 
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    void submitAction(
+      `/api/enclos/${selectedEnclos.id}/temperature`, // L'ID est immuable ici
+      "PUT",
+      {
+        temperature: form.temperature ? Number(form.temperature) : undefined,
+        humidite: form.humidite ? Number(form.humidite) : undefined,
+      },
+      "Conditions climatiques mises à jour.",
+    );
+  };
+
   return (
-    <form
-      className="stack"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submitAction(
-          `/api/enclos/${form.enclosId}/temperature`,
-          "PUT",
-          {
-            temperature: form.temperature
-              ? Number(form.temperature)
-              : undefined,
-            humidite: form.humidite ? Number(form.humidite) : undefined,
-          },
-          "Climat de l'enclos mis a jour.",
-        );
-      }}>
+    <form className="stack" onSubmit={handleSubmit}>
       <div className="form-grid">
         <div className="field">
-          <label className="label">Enclos</label>
-          <select
-            className="select"
-            value={form.enclosId}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                enclosId: event.target.value,
-              }))
-            }>
-            {data.enclos.map((enclos) => (
-              <option key={enclos.id} value={enclos.id}>
-                {enclos.nom}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label className="label">Temperature</label>
+          <label className="label">Enclos sélectionné</label>
           <input
             className="input"
-            type="number"
-            value={form.temperature}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                temperature: event.target.value,
-              }))
-            }
+            value={selectedEnclos.nom}
+            readOnly
+            disabled
           />
         </div>
-        <div className="field">
-          <label className="label">Humidite</label>
-          <input
-            className="input"
-            type="number"
-            value={form.humidite}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                humidite: event.target.value,
-              }))
-            }
-          />
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "1rem",
+          }}>
+          <div className="field">
+            <label className="label">Température (°C)</label>
+            <input
+              className="input"
+              type="number"
+              step="0.1"
+              placeholder="Ex: 24.5"
+              value={form.temperature}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, temperature: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Humidité (%)</label>
+            <input
+              className="input"
+              type="number"
+              placeholder="Ex: 60"
+              value={form.humidite}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, humidite: e.target.value }))
+              }
+            />
+          </div>
         </div>
       </div>
-      <button className="button-ghost" disabled={pending} type="submit">
-        Mettre a jour
+      <button className="button" disabled={pending} type="submit">
+        {pending ? "Enregistrement..." : "Mettre à jour le climat"}
       </button>
     </form>
   );

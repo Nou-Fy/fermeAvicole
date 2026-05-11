@@ -32,8 +32,6 @@ export default function ElevageAnimauxPage() {
     notes: "",
   });
 
-  // Initialiser avec un animal vide (on le remplit quand on clique "Mettre à jour")
-
   // Fermer modales avec ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {

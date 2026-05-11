@@ -1,4 +1,3 @@
-// src/app/dashboard/elevage/enclos/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -12,10 +11,11 @@ import { EnclosClimateForm } from "@/components/enclos/EnclosClimateForm";
 import { EnclosList } from "@/components/enclos/EnclosList";
 
 export default function ElevageEnclosPage() {
-  const { data, loading, error, pending, submitAction } = useDashboard();
+  const { data, loading, error, pending, submitAction } = useDashboard() as any;
   const [activeModal, setActiveModal] = useState<"assign" | "climate" | null>(
     null,
   );
+  const [selectedEnclosId, setSelectedEnclosId] = useState<string | null>(null);
 
   if (loading && !data)
     return (
@@ -30,8 +30,15 @@ export default function ElevageEnclosPage() {
       </div>
     );
 
-  const hasEnclos = data.enclos.length > 0;
-  const close = () => setActiveModal(null);
+  const handleAction = (id: string, type: "assign" | "climate") => {
+    setSelectedEnclosId(id);
+    setActiveModal(type);
+  };
+
+  const close = () => {
+    setActiveModal(null);
+    setSelectedEnclosId(null);
+  };
 
   return (
     <div className="stack">
@@ -41,25 +48,8 @@ export default function ElevageEnclosPage() {
         </Link>
       </PageHeader>
 
-      <div
-        className="dashboard-actions"
-        style={{ display: "flex", gap: "1rem" }}>
-        <button
-          className="button"
-          onClick={() => setActiveModal("assign")}
-          disabled={!hasEnclos || data.animals.length === 0}>
-          Affecter un animal
-        </button>
-        <button
-          className="button-ghost"
-          onClick={() => setActiveModal("climate")}
-          disabled={!hasEnclos}>
-          Mettre à jour le climat
-        </button>
-      </div>
-
       <div className="dashboard-grid">
-        <SectionCard title="Créer un enclos" hint="Gestion de l'espace">
+        <SectionCard title="Créer un enclos" hint="Ajouter une structure">
           <EnclosCreateForm
             data={data}
             pending={pending}
@@ -67,36 +57,40 @@ export default function ElevageEnclosPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Parc d'enclos" hint="Occupation actuelle">
-          <EnclosList items={data.enclos} />
+        <SectionCard title="Parc d'enclos" hint="Actions par enclos">
+          <EnclosList items={data.enclos || []} onAction={handleAction} />
         </SectionCard>
       </div>
 
+      {/* Modal Affectation - L'enclos est "verrouillé" par l'ID passé en prop */}
       <Modal
         isOpen={activeModal === "assign"}
         onClose={close}
         title="Affecter un animal">
         <EnclosAssignForm
           data={data}
+          enclosId={selectedEnclosId} // <-- On passe l'enclos choisi
           pending={pending}
           submitAction={async (url, method, body, msg) => {
             const ok = await submitAction(url, method, body, msg);
-            if (ok) close(); // <-- On utilise 'close' ici
+            if (ok) close();
             return !!ok;
           }}
         />
       </Modal>
 
+      {/* Modal Climat */}
       <Modal
         isOpen={activeModal === "climate"}
         onClose={close}
-        title="Conditions des enclos">
+        title="Mettre à jour le climat">
         <EnclosClimateForm
           data={data}
+          enclosId={selectedEnclosId} // <-- On passe l'enclos choisi
           pending={pending}
           submitAction={async (url, method, body, msg) => {
             const ok = await submitAction(url, method, body, msg);
-            if (ok) close(); // <-- Et ici aussi
+            if (ok) close();
             return !!ok;
           }}
         />
