@@ -1,5 +1,7 @@
 :root,
 :root[data-theme="light"] {
+  --dashboard-sidebar-width: 320px;
+  --dashboard-header-height: 96px;
   --bg: #f7f2e8;
   --bg-accent: #efe3c8;
   --surface: rgba(255, 251, 243, 0.82);
@@ -39,6 +41,8 @@
 }
 
 :root[data-theme="dark"] {
+  --dashboard-sidebar-width: 320px;
+  --dashboard-header-height: 96px;
   --bg: #151313;
   --bg-accent: #1d1a19;
   --surface: rgba(31, 27, 25, 0.86);
@@ -474,9 +478,8 @@ p {
    ============================================ */
 
 .dashboard-app {
-  display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
   min-height: 100vh;
+  background: transparent;
 }
 
 /* ============================================
@@ -484,18 +487,21 @@ p {
    ============================================ */
 
 .dashboard-sidebar {
-  position: sticky;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--dashboard-sidebar-width);
   top: 0;
   display: grid;
   align-content: start;
   gap: 1.4rem;
-  min-height: 100vh;
+  height: 100vh;
   padding: 1.5rem 1.1rem;
   border-right: 1px solid var(--line);
   background: var(--surface-nav);
   backdrop-filter: blur(14px);
   transition: transform 0.3s ease;
   overflow-y: auto;
+  z-index: 60;
 }
 
 /* ============================================
@@ -634,16 +640,38 @@ p {
    ============================================ */
 
 .dashboard-main {
+  position: relative;
   min-width: 0;
-  padding: 0 1.25rem 0.75rem;
+  min-height: 100vh;
+  margin-left: var(--dashboard-sidebar-width);
 }
 
 .dashboard-topbar {
-  display: flex;
-  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: var(--dashboard-sidebar-width);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem 0;
+  min-height: var(--dashboard-header-height);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-nav);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-user {
+  min-width: 0;
+}
+
+.dashboard-user strong,
+.dashboard-user .helper {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-topbar-actions {
@@ -654,9 +682,16 @@ p {
   align-items: center;
 }
 
+.dashboard-scroll-region {
+  height: 100vh;
+  overflow-y: auto;
+  padding: calc(var(--dashboard-header-height) + 1rem) 1.25rem 0.75rem;
+}
+
 .dashboard-content {
   display: grid;
   gap: 1rem;
+  align-content: start;
 }
 
 .section-nav {
@@ -779,8 +814,16 @@ p {
 }
 
 .footer-note {
-  padding: 1rem 0 2rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: 1rem;
+  margin-inline: -1.25rem;
+  padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
   color: var(--text-soft);
+  border-top: 1px solid var(--line);
+  background: var(--surface-nav);
+  backdrop-filter: blur(18px);
 }
 
 .animate-rise {
@@ -803,14 +846,8 @@ p {
    ============================================ */
 
 @media (max-width: 980px) {
-  /* ← Layout passe à 1 colonne */
-  .dashboard-app {
-    grid-template-columns: 1fr;
-  }
-
   /* ← Sidebar devient fixed ET hors du grid */
   .dashboard-sidebar {
-    position: fixed;
     top: 0;
     left: 0;
     width: 280px;
@@ -843,8 +880,18 @@ p {
     z-index: 10000;
   }
 
+  .dashboard-main {
+    margin-left: 0;
+  }
+
   .dashboard-topbar {
-    padding-left: 0.5rem;
+    left: 0;
+    padding-inline: 1rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .dashboard-scroll-region {
+    padding-inline: 1rem;
   }
 
   /* ← Grids responsifs */
@@ -890,19 +937,22 @@ p {
     border-radius: 20px;
   }
 
-  .dashboard-main {
+  .dashboard-topbar {
+    gap: 0.75rem;
     padding-inline: 0.85rem;
   }
 
-  .theme-switcher,
   .dashboard-topbar-actions {
-    width: 100%;
+    gap: 0.5rem;
   }
 
-  .dashboard-topbar {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+  .dashboard-scroll-region {
+    padding-inline: 0.85rem;
+  }
+
+  .footer-note {
+    margin-inline: -0.85rem;
+    padding-inline: 0.85rem;
   }
 }
 
