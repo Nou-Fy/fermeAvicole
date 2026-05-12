@@ -106,228 +106,99 @@ export default function ElevageAnimauxPage() {
       {openModals.create && (
         <div
           className="modal-backdrop"
-          onClick={(e) => handleBackdropClick(e, "create")}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}>
-          <SectionCard
-            title="Ajouter un animal"
-            hint="Creation d'un lot ou d'une nouvelle poule">
-            <form
-              className="stack"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                const ok = await submitAction(
-                  "/api/animals",
-                  "POST",
-                  animalForm,
-                  "Animal ajoute.",
-                );
-
-                if (ok) {
-                  setAnimalForm({
-                    numIdentif: "",
-                    race: "",
-                    sexe: "FEMELLE",
-                    dateNaissance: "",
-                    notes: "",
-                  });
-                  closeModal("create");
-                }
-              }}>
-              <div className="form-grid">
-                <div className="field">
-                  <label className="label">Numero d&apos;identification</label>
-                  <input
-                    className="input"
-                    value={animalForm.numIdentif}
-                    onChange={(event) =>
-                      setAnimalForm((current) => ({
-                        ...current,
-                        numIdentif: event.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label className="label">Race</label>
-                  <input
-                    className="input"
-                    value={animalForm.race}
-                    onChange={(event) =>
-                      setAnimalForm((current) => ({
-                        ...current,
-                        race: event.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label className="label">Sexe</label>
-                  <select
-                    className="select"
-                    value={animalForm.sexe}
-                    onChange={(event) =>
-                      setAnimalForm((current) => ({
-                        ...current,
-                        sexe: event.target.value,
-                      }))
-                    }>
-                    <option value="FEMELLE">Femelle</option>
-                    <option value="MALE">Male</option>
-                  </select>
-                </div>
-                <div className="field">
-                  <label className="label">Date de naissance</label>
-                  <input
-                    className="input"
-                    type="date"
-                    value={animalForm.dateNaissance}
-                    onChange={(event) =>
-                      setAnimalForm((current) => ({
-                        ...current,
-                        dateNaissance: event.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="field field-full">
-                  <label className="label">Notes</label>
-                  <textarea
-                    className="textarea"
-                    value={animalForm.notes}
-                    onChange={(event) =>
-                      setAnimalForm((current) => ({
-                        ...current,
-                        notes: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button className="button" disabled={pending} type="submit">
-                  Enregistrer l&apos;animal
-                </button>
-                <button
-                  className="button-ghost"
-                  type="button"
-                  onClick={() => closeModal("create")}>
-                  Fermer
-                </button>
-              </div>
-            </form>
-          </SectionCard>
-        </div>
-      )}
-
-      {/* MODALE 2: Mettre à jour un animal */}
-      {openModals.update && (
-        <div
-          className="modal-backdrop"
-          onClick={(e) => handleBackdropClick(e, "update")}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}>
-          <SectionCard
-            title={`Mettre a jour: ${
-              data.animals.find((a) => a.id === animalUpdateForm.animalId)
-                ?.numIdentif || ""
-            } · ${
-              data.animals.find((a) => a.id === animalUpdateForm.animalId)
-                ?.race || ""
-            }`}
-            hint="Poids, etat ou commentaire">
-            {data.animals.length === 0 ? (
-              <EmptyState message="Ajoutez d'abord un animal." />
-            ) : (
+          onClick={(e) => handleBackdropClick(e, "create")}>
+          <div className="modal-panel">
+            <SectionCard
+              title="Ajouter un animal"
+              hint="Creation d'un lot ou d'une nouvelle poule">
               <form
                 className="stack"
-                onSubmit={(event) => {
+                onSubmit={async (event) => {
                   event.preventDefault();
-                  void submitAction(
-                    `/api/animals/${animalUpdateForm.animalId}`,
-                    "PUT",
-                    {
-                      poids: animalUpdateForm.poids
-                        ? Number(animalUpdateForm.poids)
-                        : undefined,
-                      etat: animalUpdateForm.etat,
-                      notes: animalUpdateForm.notes,
-                    },
-                    "Animal mis a jour.",
+                  const ok = await submitAction(
+                    "/api/animals",
+                    "POST",
+                    animalForm,
+                    "Animal ajoute.",
                   );
+
+                  if (ok) {
+                    setAnimalForm({
+                      numIdentif: "",
+                      race: "",
+                      sexe: "FEMELLE",
+                      dateNaissance: "",
+                      notes: "",
+                    });
+                    closeModal("create");
+                  }
                 }}>
                 <div className="form-grid">
                   <div className="field">
-                    <label className="label">Poids (kg)</label>
+                    <label className="label">Numero d&apos;identification</label>
                     <input
                       className="input"
-                      type="number"
-                      step="0.1"
-                      value={animalUpdateForm.poids}
+                      value={animalForm.numIdentif}
                       onChange={(event) =>
-                        setAnimalUpdateForm((current) => ({
+                        setAnimalForm((current) => ({
                           ...current,
-                          poids: event.target.value,
+                          numIdentif: event.target.value,
                         }))
                       }
+                      required
                     />
                   </div>
                   <div className="field">
-                    <label className="label">Etat</label>
+                    <label className="label">Race</label>
+                    <input
+                      className="input"
+                      value={animalForm.race}
+                      onChange={(event) =>
+                        setAnimalForm((current) => ({
+                          ...current,
+                          race: event.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="label">Sexe</label>
                     <select
                       className="select"
-                      value={animalUpdateForm.etat}
+                      value={animalForm.sexe}
                       onChange={(event) =>
-                        setAnimalUpdateForm((current) => ({
+                        setAnimalForm((current) => ({
                           ...current,
-                          etat: event.target.value,
+                          sexe: event.target.value,
                         }))
                       }>
-                      {[
-                        "ACTIF",
-                        "POUSSIN",
-                        "JEUNE",
-                        "REPRODUCTRICE",
-                        "EN_REPOS",
-                        "RETRAITE",
-                        "DECEDE",
-                      ].map((etat) => (
-                        <option key={etat} value={etat}>
-                          {etat}
-                        </option>
-                      ))}
+                      <option value="FEMELLE">Femelle</option>
+                      <option value="MALE">Male</option>
                     </select>
+                  </div>
+                  <div className="field">
+                    <label className="label">Date de naissance</label>
+                    <input
+                      className="input"
+                      type="date"
+                      value={animalForm.dateNaissance}
+                      onChange={(event) =>
+                        setAnimalForm((current) => ({
+                          ...current,
+                          dateNaissance: event.target.value,
+                        }))
+                      }
+                      required
+                    />
                   </div>
                   <div className="field field-full">
                     <label className="label">Notes</label>
                     <textarea
                       className="textarea"
-                      value={animalUpdateForm.notes}
+                      value={animalForm.notes}
                       onChange={(event) =>
-                        setAnimalUpdateForm((current) => ({
+                        setAnimalForm((current) => ({
                           ...current,
                           notes: event.target.value,
                         }))
@@ -336,22 +207,131 @@ export default function ElevageAnimauxPage() {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    className="button-secondary"
-                    disabled={pending}
-                    type="submit">
-                    Sauvegarder
+                  <button className="button" disabled={pending} type="submit">
+                    Enregistrer l&apos;animal
                   </button>
                   <button
                     className="button-ghost"
                     type="button"
-                    onClick={() => closeModal("update")}>
+                    onClick={() => closeModal("create")}>
                     Fermer
                   </button>
                 </div>
               </form>
-            )}
-          </SectionCard>
+            </SectionCard>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE 2: Mettre à jour un animal */}
+      {openModals.update && (
+        <div
+          className="modal-backdrop"
+          onClick={(e) => handleBackdropClick(e, "update")}>
+          <div className="modal-panel">
+            <SectionCard
+              title={`Mettre a jour: ${
+                data.animals.find((a) => a.id === animalUpdateForm.animalId)
+                  ?.numIdentif || ""
+              } · ${
+                data.animals.find((a) => a.id === animalUpdateForm.animalId)
+                  ?.race || ""
+              }`}
+              hint="Poids, etat ou commentaire">
+              {data.animals.length === 0 ? (
+                <EmptyState message="Ajoutez d'abord un animal." />
+              ) : (
+                <form
+                  className="stack"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void submitAction(
+                      `/api/animals/${animalUpdateForm.animalId}`,
+                      "PUT",
+                      {
+                        poids: animalUpdateForm.poids
+                          ? Number(animalUpdateForm.poids)
+                          : undefined,
+                        etat: animalUpdateForm.etat,
+                        notes: animalUpdateForm.notes,
+                      },
+                      "Animal mis a jour.",
+                    );
+                  }}>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label className="label">Poids (kg)</label>
+                      <input
+                        className="input"
+                        type="number"
+                        step="0.1"
+                        value={animalUpdateForm.poids}
+                        onChange={(event) =>
+                          setAnimalUpdateForm((current) => ({
+                            ...current,
+                            poids: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="field">
+                      <label className="label">Etat</label>
+                      <select
+                        className="select"
+                        value={animalUpdateForm.etat}
+                        onChange={(event) =>
+                          setAnimalUpdateForm((current) => ({
+                            ...current,
+                            etat: event.target.value,
+                          }))
+                        }>
+                        {[
+                          "ACTIF",
+                          "POUSSIN",
+                          "JEUNE",
+                          "REPRODUCTRICE",
+                          "EN_REPOS",
+                          "RETRAITE",
+                          "DECEDE",
+                        ].map((etat) => (
+                          <option key={etat} value={etat}>
+                            {etat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field field-full">
+                      <label className="label">Notes</label>
+                      <textarea
+                        className="textarea"
+                        value={animalUpdateForm.notes}
+                        onChange={(event) =>
+                          setAnimalUpdateForm((current) => ({
+                            ...current,
+                            notes: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      className="button-secondary"
+                      disabled={pending}
+                      type="submit">
+                      Sauvegarder
+                    </button>
+                    <button
+                      className="button-ghost"
+                      type="button"
+                      onClick={() => closeModal("update")}>
+                      Fermer
+                    </button>
+                  </div>
+                </form>
+              )}
+            </SectionCard>
+          </div>
         </div>
       )}
 

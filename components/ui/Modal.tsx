@@ -23,21 +23,8 @@ export function Modal({ isOpen, onClose, title, hint, children }: ModalProps) {
   return (
     <div
       className="modal-backdrop"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
-      }}>
-      <div style={{ width: "100%", maxWidth: "500px" }}>
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-panel">
         <SectionCard title={title} hint={hint}>
           <div className="stack">
             {children}
