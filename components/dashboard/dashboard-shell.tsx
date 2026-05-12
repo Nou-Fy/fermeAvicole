@@ -112,7 +112,7 @@ export function DashboardShell({
             <span />
           </button>
 
-          <div className="stack" style={{ gap: "0.2rem" }}>
+          <div className="dashboard-user stack" style={{ gap: "0.2rem" }}>
             <strong>
               {currentUser.firstName} {currentUser.lastName}
             </strong>
@@ -137,24 +137,26 @@ export function DashboardShell({
           </div>
         </header>
 
-        {/* Zones d'alertes */}
-        {dashboard.flash && (
-          <div className="alert alert-success" onClick={dashboard.clearFlash}>
-            {dashboard.flash}
-          </div>
-        )}
+        <div className="dashboard-scroll-region">
+          {/* Zones d'alertes */}
+          {dashboard.flash && (
+            <div className="alert alert-success" onClick={dashboard.clearFlash}>
+              {dashboard.flash}
+            </div>
+          )}
 
-        {dashboard.error && (
-          <div className="alert alert-error" onClick={dashboard.clearError}>
-            {dashboard.error}
-          </div>
-        )}
+          {dashboard.error && (
+            <div className="alert alert-error" onClick={dashboard.clearError}>
+              {dashboard.error}
+            </div>
+          )}
 
-        <div className="dashboard-content">{children}</div>
+          <div className="dashboard-content">{children}</div>
 
-        <footer className="footer-note">
-          Monolithe Next.js, Prisma et PostgreSQL local.
-        </footer>
+          <footer className="footer-note">
+            Monolithe Next.js, Prisma et PostgreSQL local.
+          </footer>
+        </div>
       </div>
     </div>
   );

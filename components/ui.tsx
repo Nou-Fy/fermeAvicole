@@ -53,8 +53,10 @@ export function StatBlock({
 }) {
   return (
     <div className="mini-card">
-      <div className="muted">{label}</div>
-      <div className="stat-value" style={{ fontSize: "1.65rem" }}>
+      <div className="muted" style={{ fontSize: "1rem" }}>
+        {label}
+      </div>
+      <div className="stat-value" style={{ fontSize: "1.15rem" }}>
         {value}
       </div>
       {helper ? <div className="helper">{helper}</div> : null}

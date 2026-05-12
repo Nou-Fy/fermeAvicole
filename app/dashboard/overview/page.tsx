@@ -42,9 +42,18 @@ export default function DashboardOverviewPage() {
             </PageHeader>
 
             <div className="stats-grid">
-              <StatBlock label="Animaux" value={data.stats.totalAnimals} />
-              <StatBlock label="Oeufs" value={data.stats.totalEggs} />
-              <StatBlock label="Commandes" value={data.stats.totalSales} />
+              <StatBlock
+                label="Animaux dans votre élevage :"
+                value={data.stats.totalAnimals}
+              />
+              <StatBlock
+                label="Nombres d'Oeufs :"
+                value={data.stats.totalEggs}
+              />
+              <StatBlock
+                label="Commandes passer pour votre ferme :"
+                value={data.stats.totalSales}
+              />
               <StatBlock
                 label="Profit du mois"
                 value={formatCurrency(data.stats.monthlyProfit)}
