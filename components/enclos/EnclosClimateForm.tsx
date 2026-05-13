@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { showToast } from "@/lib/toast";
 import type { DashboardActionMethod } from "@/components/dashboard/dashboard-provider";
 
 type EnclosClimateFormProps = {
@@ -47,8 +48,14 @@ export function EnclosClimateForm({
     }
   }, [selectedEnclos]);
 
+  useEffect(() => {
+    if (!selectedEnclos) {
+      showToast.error("Enclos non trouvé.");
+    }
+  }, [selectedEnclos]);
+
   if (!selectedEnclos) {
-    return <div className="alert">Enclos non trouvé.</div>;
+    return null;
   }
 
   const handleSubmit = (event: React.FormEvent) => {

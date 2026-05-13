@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { showToast } from "@/lib/toast";
 import {
   dashboardNavigation,
   getActiveDashboardSection,
@@ -35,6 +36,20 @@ export function DashboardShell({
   // État pour gérer l'ouverture du menu mobile
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (dashboard.flash) {
+      showToast.success(dashboard.flash);
+      dashboard.clearFlash();
+    }
+  }, [dashboard.flash, dashboard]);
+
+  useEffect(() => {
+    if (dashboard.error) {
+      showToast.error(dashboard.error);
+      dashboard.clearError();
+    }
+  }, [dashboard.error, dashboard]);
+
   return (
     <div className="dashboard-app">
       {/* Overlay sombre : s'affiche quand le menu est ouvert (mobile uniquement) */}
@@ -60,41 +75,49 @@ export function DashboardShell({
         </div>
 
         <nav className="dashboard-nav" aria-label="Navigation principale">
-          {dashboardNavigation.map((item) => (
-            <div key={item.key} className="dashboard-nav-group">
-              <Link
-                className={
-                  isRouteActive(pathname, item.href)
-                    ? "dashboard-nav-link dashboard-nav-link-active"
-                    : "dashboard-nav-link"
-                }
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}>
-                <strong>{item.label}</strong>
-                {item.description ? (
-                  <span className="helper">{item.description}</span>
-                ) : null}
-              </Link>
+          {dashboardNavigation.map((item) => {
+            const isGroupActive =
+              isRouteActive(pathname, item.href) ||
+              item.children?.some((child) =>
+                isRouteActive(pathname, child.href),
+              );
 
-              {activeSection.key === item.key && item.children?.length ? (
-                <div className="dashboard-subnav">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      className={
-                        isRouteActive(pathname, child.href)
-                          ? "dashboard-subnav-link dashboard-subnav-link-active"
-                          : "dashboard-subnav-link"
-                      }
-                      href={child.href}
-                      onClick={() => setIsMenuOpen(false)}>
-                      {child.label}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ))}
+            return (
+              <div key={item.key} className="dashboard-nav-group">
+                <Link
+                  className={
+                    isGroupActive
+                      ? "dashboard-nav-link dashboard-nav-link-active"
+                      : "dashboard-nav-link"
+                  }
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}>
+                  <strong>{item.label}</strong>
+                  {item.description ? (
+                    <span className="helper">{item.description}</span>
+                  ) : null}
+                </Link>
+
+                {isGroupActive && item.children?.length ? (
+                  <div className="dashboard-subnav">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        className={
+                          isRouteActive(pathname, child.href)
+                            ? "dashboard-subnav-link dashboard-subnav-link-active" // Changé ici
+                            : "dashboard-subnav-link" // Changé ici
+                        }
+                        href={child.href}
+                        onClick={() => setIsMenuOpen(false)}>
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </nav>
       </aside>
 
@@ -138,19 +161,6 @@ export function DashboardShell({
         </header>
 
         <div className="dashboard-scroll-region">
-          {/* Zones d'alertes */}
-          {dashboard.flash && (
-            <div className="alert alert-success" onClick={dashboard.clearFlash}>
-              {dashboard.flash}
-            </div>
-          )}
-
-          {dashboard.error && (
-            <div className="alert alert-error" onClick={dashboard.clearError}>
-              {dashboard.error}
-            </div>
-          )}
-
           <div className="dashboard-content">{children}</div>
 
           <footer className="footer-note">

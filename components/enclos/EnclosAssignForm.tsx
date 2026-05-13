@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { showToast } from "@/lib/toast";
 import type { DashboardActionMethod } from "@/components/dashboard/dashboard-provider";
 
 type EnclosAssignFormProps = {
@@ -55,7 +56,13 @@ export function EnclosAssignForm({
     }
   }, [availableAnimals, form.animalNum]);
 
-  if (!selectedEnclos) return <div className="alert">Enclos non spécifié.</div>;
+  useEffect(() => {
+    if (!selectedEnclos) {
+      showToast.error("Enclos non spécifié.");
+    }
+  }, [selectedEnclos]);
+
+  if (!selectedEnclos) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

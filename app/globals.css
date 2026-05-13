@@ -590,6 +590,7 @@ p {
   gap: 0.45rem;
 }
 
+/* Base commune pour tous les liens (Forme inchangée) */
 .dashboard-nav-link,
 .dashboard-subnav-link,
 .section-nav-link,
@@ -614,10 +615,11 @@ p {
   border-color: var(--line);
 }
 
-.dashboard-nav-link-active,
-.link-card:hover {
-  background: var(--accent-primary-soft);
-  border-color: var(--accent-primary-line);
+/* PARENT Actif -> PRIMARY (Vert) */
+.dashboard-nav-link-active {
+  background: var(--accent-primary-soft) !important;
+  border-color: var(--accent-primary-line) !important;
+  color: var(--primary-strong) !important;
 }
 
 .dashboard-subnav {
@@ -626,13 +628,16 @@ p {
   padding-left: 0.6rem;
 }
 
+/* SUBNAV de base (Optionnel : un peu plus petit ou discret) */
 .dashboard-subnav-link {
   padding: 0.72rem 0.9rem;
 }
 
+/* SUBNAV Actif -> SECONDARY (Orange/Terre) */
 .dashboard-subnav-link-active {
-  background: var(--accent-secondary-soft);
-  border-color: var(--accent-secondary-line);
+  background: var(--accent-secondary-soft) !important;
+  border-color: var(--accent-secondary-line) !important;
+  color: var(--secondary) !important;
 }
 
 /* ============================================

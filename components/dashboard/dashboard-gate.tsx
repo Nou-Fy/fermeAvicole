@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
+import { showToast } from "@/lib/toast";
 import type { DashboardOverview } from "@/types/dashboard";
 
 export function DashboardGate({
@@ -16,6 +18,14 @@ export function DashboardGate({
 }) {
   const dashboard = useDashboard();
 
+  useEffect(() => {
+    if (!dashboard.data && dashboard.error) {
+      showToast.error(
+        dashboard.error || "Les donnees du dashboard sont indisponibles.",
+      );
+    }
+  }, [dashboard.data, dashboard.error]);
+
   if (dashboard.loading && !dashboard.data) {
     return (
       <div className="section">
@@ -25,11 +35,7 @@ export function DashboardGate({
   }
 
   if (!dashboard.data) {
-    return (
-      <div className="alert alert-error">
-        {dashboard.error || "Les donnees du dashboard sont indisponibles."}
-      </div>
-    );
+    return null; // Ou un message d'erreur statique si nécessaire
   }
 
   return <>{children({ ...dashboard, data: dashboard.data })}</>;

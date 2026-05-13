@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { FormGroup } from "@/components/ui";
+import { showToast } from "@/lib/toast";
 
 type AuthMode = "login" | "register";
 
@@ -25,6 +26,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [loading, setLoading] = useState(false);
 
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    if (error) {
+      showToast.error(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (success) {
+      showToast.success(success);
+    }
+  }, [success]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,9 +103,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       </div>
 
       <form className="stack" onSubmit={handleSubmit}>
-        {error ? <div className="alert alert-error">{error}</div> : null}
-        {success ? <div className="alert alert-success">{success}</div> : null}
-
         <div className="form-grid">
           <FormGroup label="Email" htmlFor="email">
             <input
