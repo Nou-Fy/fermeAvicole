@@ -7,6 +7,7 @@ import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { PageHeader, SectionCard, StatusBadge } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
+import { EtatAnimal } from "@prisma/client";
 
 export default function ElevageAnimauxPage() {
   const { data, loading, pending, error, submitAction } = useDashboard();
@@ -135,7 +136,9 @@ export default function ElevageAnimauxPage() {
                 }}>
                 <div className="form-grid">
                   <div className="field">
-                    <label className="label">Numero d&apos;identification</label>
+                    <label className="label">
+                      Numero d&apos;identification
+                    </label>
                     <input
                       className="input"
                       value={animalForm.numIdentif}
@@ -355,7 +358,7 @@ export default function ElevageAnimauxPage() {
                   />
                 </div>
                 <span className="helper">
-                  {animal.sexe} · {animal.ageMois} mois · etat calcule{" "}
+                  {animal.sexe} · {animal.ageMois} mois · Ages:{" "}
                   {animal.etatParAge}
                 </span>
                 <span className="helper">
@@ -364,6 +367,7 @@ export default function ElevageAnimauxPage() {
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button
                     className="button-ghost"
+                    disabled={animal.etat === EtatAnimal.DECEDE || pending}
                     onClick={() => {
                       setAnimalUpdateForm({
                         animalId: animal.id,
@@ -376,23 +380,22 @@ export default function ElevageAnimauxPage() {
                     type="button">
                     Mettre à jour
                   </button>
-                  {animal.etat !== "DECEDE" ? (
+                  {animal.etat !== EtatAnimal.DECEDE ? (
                     <button
                       className="button-ghost"
                       disabled={pending}
-                      onClick={() =>
-                        void submitAction(
-                          `/api/animals/${animal.id}`,
+                      onClick={() => {
+                        submitAction(
+                          `/api/animals/${animal.id}/mark-deceased`,
                           "PATCH",
-                          {
-                            status: "deceased",
-                            reason: "Animal archive comme decede.",
-                          },
-                          "L'animal a été marqué comme décédé.", // Message de succès
-                        )
-                      }
+                          { reason: "Animal archivé comme décédé." },
+                          "L'animal a été marqué comme décédé.",
+                        ).then(() => {
+                          closeModal("update");
+                        });
+                      }}
                       type="button">
-                      Marquer decede
+                      Marquer décédé
                     </button>
                   ) : null}
                 </div>
