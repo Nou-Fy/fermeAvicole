@@ -3,6 +3,7 @@ import { Bitter, Manrope } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ThemeScript } from "@/components/theme/theme-script";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 import "./globals.css";
 
@@ -31,7 +32,10 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className={`${headingFont.variable} ${bodyFont.variable}`}>
         <ThemeScript />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

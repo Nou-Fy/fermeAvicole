@@ -5,6 +5,7 @@ import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { PageHeader, SectionCard, StatusBadge } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
+import { showToast } from "@/lib/toast";
 
 export default function SantePage() {
   const { data, loading, pending, error, submitAction } = useDashboard();
@@ -40,12 +41,14 @@ export default function SantePage() {
     );
   }
 
+  useEffect(() => {
+    if (!data && error) {
+      showToast.error(error || "Données indisponibles.");
+    }
+  }, [data, error]);
+
   if (!data) {
-    return (
-      <div className="alert alert-error">
-        {error || "Données indisponibles."}
-      </div>
-    );
+    return null;
   }
 
   return (

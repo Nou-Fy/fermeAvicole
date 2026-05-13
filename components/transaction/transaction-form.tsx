@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
+import { showToast } from "@/lib/toast";
 
 interface TransactionFormProps {
   onSuccess?: (transactionId: string, montant: number) => void;
@@ -57,13 +58,13 @@ export function TransactionForm({
 
     // Validation : au moins un montant valide
     if (montantFinal <= 0) {
-      alert("Le montant final doit être positif.");
+      showToast.error("Le montant final doit être positif.");
       return;
     }
 
     // Validation : si custom, le champ doit être rempli
     if (deliveryOption === "custom" && !customFret) {
-      alert("Veuillez entrer le montant du fret personnalisé.");
+      showToast.error("Veuillez entrer le montant du fret personnalisé.");
       return;
     }
 

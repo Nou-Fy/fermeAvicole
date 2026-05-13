@@ -20,7 +20,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
   {
     key: "elevage",
     label: "Elevage",
-    href: "/dashboard/elevage/animaux",
+    href: "/dashboard/elevage",
     description: "Animaux et enclos",
     children: [
       {
@@ -153,9 +153,10 @@ export function isRouteActive(pathname: string, href: string) {
 
 export function getActiveDashboardSection(pathname: string) {
   return (
-    dashboardNavigation.find((item) =>
-      item.children?.some((child) => isRouteActive(pathname, child.href)) ||
-      isRouteActive(pathname, item.href),
+    dashboardNavigation.find(
+      (item) =>
+        item.children?.some((child) => isRouteActive(pathname, child.href)) ||
+        isRouteActive(pathname, item.href),
     ) ?? dashboardNavigation[0]
   );
 }
