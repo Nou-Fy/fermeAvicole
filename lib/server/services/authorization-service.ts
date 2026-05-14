@@ -6,50 +6,67 @@ import { prisma } from "@/lib/prisma";
 export class AuthorizationService implements IAuthorizationService {
   constructor(private dataStore: IDataStore) {}
 
-  async canUserAccessAnimal(
-    animalId: string,
-    farmId: string,
+  // ✅ NOUVELLE MÉTHODE
+  // lib/server/services/authorization-service.ts
+
+  async canUserDeleteEnclosure(
+    userId: string,
+    enclosureId: string,
   ): Promise<boolean> {
-    const animal = await prisma.animal.findFirst({
-      where: {
-        id: animalId,
-        farmId: farmId,
-      },
+    // 1. Récupère l'utilisateur
+    const user = await this.dataStore.users.findById(userId);
+    console.log("🔍 USER:", {
+      userId,
+      userRole: user?.role,
+      userFarmId: user?.farmId,
     });
-    return !!animal;
+
+    if (!user || user.role !== "OWNER") {
+      return false;
+    }
+
+    // 2. Vérife l'accès au farm
+    const canAccess = await this.canUserAccessEnclosure(userId, enclosureId);
+
+    if (!canAccess) {
+    }
+
+    return canAccess;
   }
 
-  // Correction ici : On utilise farmId pour correspondre au schéma
   async canUserAccessEnclosure(
+    userId: string,
     enclosureId: string,
-    farmId: string,
   ): Promise<boolean> {
-    const enclosure = await prisma.enclos.findFirst({
-      where: {
-        id: enclosureId,
-        farmId: farmId,
-      },
-    });
+    const enclosure = await this.dataStore.enclosures.findById(enclosureId);
+    if (!enclosure) return false;
 
-    return !!enclosure;
+    return enclosure.farmId === userId;
   }
 
-  // Cette méthode devient redondante avec la précédente,
-  // mais gardons-la si votre interface l'exige
-  async canAccessEnclosure(
-    enclosureId: string,
-    farmId: string,
+  async canUserAccessAnimal(
+    userId: string,
+    animalId: string,
   ): Promise<boolean> {
-    return this.canUserAccessEnclosure(enclosureId, farmId);
+    const animal = await this.dataStore.animals.findById(animalId);
+    if (!animal) return false;
+
+    const user = await this.dataStore.users.findById(userId);
+    return user && animal.farmId === user.farmId;
   }
 
   async canUserAccessFarm(userId: string, farmId: string): Promise<boolean> {
     const user = await this.dataStore.users.findById(userId);
+    return user && user.farmId === farmId;
+  }
 
-    if (!user) return false;
+  async canUserDeleteAnimal(
+    userId: string,
+    animalId: string,
+  ): Promise<boolean> {
+    const user = await this.dataStore.users.findById(userId);
+    if (!user || user.role !== "OWNER") return false;
 
-    // Dans votre schéma, le lien se fait par farmName ou farmId
-    // Logique à adapter selon votre besoin métier :
-    return true;
+    return this.canUserAccessAnimal(userId, animalId);
   }
 }

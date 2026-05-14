@@ -19,6 +19,7 @@ model User {
   firstName String
   lastName  String
   farmName  String
+  farmId    String?
   role      UserRole  @default(OWNER)
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
@@ -321,8 +322,11 @@ model NotificationSante {
 // =====================
 // ENCLOS SCHEMA
 // =====================
+// =====================
+// ENCLOS SCHEMA
+// =====================
 model Enclos {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   farmId       String
   nom          String
   type         String
@@ -331,8 +335,11 @@ model Enclos {
   temperature  Float?
   humidite     Float?
   notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  status       EnclosStatus @default(ACTIF)
+  deletedAt    DateTime?
+  deletedBy    String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   animauxActuels AnimalEnclosAssociation[]
 
@@ -348,9 +355,17 @@ model AnimalEnclosAssociation {
   dateSortie DateTime?
   notes      String?
 
+  // ✅ onDelete: Cascade — supprimer l'enclos supprime les associations
   enclos Enclos @relation(fields: [enclosId], references: [id], onDelete: Cascade)
 
   @@map("animal_enclos_associations")
+  @@schema("enclos")
+}
+
+enum EnclosStatus {
+  ACTIF
+  SUPPRIME
+
   @@schema("enclos")
 }
 

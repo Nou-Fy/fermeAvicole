@@ -48,4 +48,6 @@ export interface IAuthorizationService {
   canUserAccessAnimal(userId: string, animalId: string): Promise<boolean>;
   canUserAccessEnclosure(userId: string, enclosureId: string): Promise<boolean>;
   canUserAccessFarm(userId: string, farmId: string): Promise<boolean>;
+  canUserDeleteEnclosure(userId: string, enclosureId: string): Promise<boolean>;
+  canUserDeleteAnimal(userId: string, animalId: string): Promise<boolean>;
 }

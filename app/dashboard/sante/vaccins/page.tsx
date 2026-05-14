@@ -15,7 +15,7 @@ export default function SantePage() {
     configVaccinId: "",
   });
 
-  // Initialisation du formulaire avec les premières données disponibles
+  // ✅ Hook 1 - Initialisation du formulaire
   useEffect(() => {
     if (!data) return;
 
@@ -33,6 +33,14 @@ export default function SantePage() {
     }
   }, [data, vaccinForm.animalId, vaccinForm.configVaccinId]);
 
+  // ✅ Hook 2 - Gestion des erreurs (AVANT la condition de retour)
+  useEffect(() => {
+    if (!data && error) {
+      showToast.error(error || "Données indisponibles.");
+    }
+  }, [data, error]);
+
+  // ✅ Condition de rendu APRÈS tous les hooks
   if (loading && !data) {
     return (
       <div className="section">
@@ -40,12 +48,6 @@ export default function SantePage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!data && error) {
-      showToast.error(error || "Données indisponibles.");
-    }
-  }, [data, error]);
 
   if (!data) {
     return null;
