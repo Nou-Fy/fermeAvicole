@@ -322,9 +322,6 @@ model NotificationSante {
 // =====================
 // ENCLOS SCHEMA
 // =====================
-// =====================
-// ENCLOS SCHEMA
-// =====================
 model Enclos {
   id           String       @id @default(cuid())
   farmId       String

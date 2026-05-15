@@ -59,11 +59,16 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 1. Extraire les données envoyées par le client (le "input")
+    const body = await req.json();
+
     const enclosureService = services.getEnclosureService();
-    await enclosureService.deleteEnclosure(session.sub, params.id);
+
+    // 2. Passer les 3 arguments nécessaires : userId, enclosureId, et les données (body)
+    await enclosureService.updateEnclosure(session.sub, params.id, body);
 
     return NextResponse.json(
-      { message: "Enclosure deleted successfully" },
+      { message: "Enclosure updated successfully" },
       { status: 200 },
     );
   } catch (error) {
@@ -77,7 +82,6 @@ export async function PUT(
       );
     }
 
-    console.error("Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

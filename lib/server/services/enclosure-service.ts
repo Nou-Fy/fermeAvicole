@@ -19,7 +19,7 @@ export class EnclosureService implements IEnclosureService {
       input.farmId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access to farm");
+      throw new ForbiddenError("Unauthorized access to farm");
     }
 
     const enclosure = await this.dataStore.enclosures.create({
@@ -34,7 +34,7 @@ export class EnclosureService implements IEnclosureService {
   async updateEnclosure(userId: string, enclosureId: string, input: any) {
     const enclosure = await this.dataStore.enclosures.findById(enclosureId);
     if (!enclosure) {
-      throw new Error("Enclosure not found");
+      throw new EnclosureNotFoundError(enclosureId);
     }
 
     const canAccess = await this.authService.canUserAccessEnclosure(
@@ -42,7 +42,7 @@ export class EnclosureService implements IEnclosureService {
       enclosureId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access");
+      throw new ForbiddenError("Unauthorized access");
     }
 
     const updated = await this.dataStore.enclosures.update(enclosureId, {
@@ -109,7 +109,7 @@ export class EnclosureService implements IEnclosureService {
   ) {
     const enclosure = await this.dataStore.enclosures.findById(enclosureId);
     if (!enclosure) {
-      throw new Error("Enclosure not found");
+      throw new EnclosureNotFoundError(enclosureId);
     }
 
     const canAccess = await this.authService.canUserAccessEnclosure(
@@ -117,7 +117,7 @@ export class EnclosureService implements IEnclosureService {
       enclosureId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access");
+      throw new ForbiddenError("Unauthorized access");
     }
 
     // Verify all animals belong to the user
@@ -127,7 +127,7 @@ export class EnclosureService implements IEnclosureService {
         animalId,
       );
       if (!canAccessAnimal) {
-        throw new Error(`Unauthorized access to animal ${animalId}`);
+        throw new ForbiddenError(`Unauthorized access to animal ${animalId}`);
       }
     }
 

@@ -28,7 +28,7 @@ export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/enclos/${enclosureId}`, {
-        method: "PUT",
+        method: "DELETE",
       });
 
       if (!response.ok) {
@@ -152,13 +152,7 @@ export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
               marginTop: "1.5rem",
             }}>
             <button
-              className="button-ghost"
-              onClick={() => setEnclosToDelete(null)}
-              disabled={isDeleting}>
-              Annuler
-            </button>
-            <button
-              className="button-danger"
+              className="button-ghost button-small"
               onClick={confirmDelete}
               disabled={isDeleting}>
               {isDeleting ? "Suppression en cours..." : "Oui, supprimer"}
