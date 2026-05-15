@@ -13,6 +13,12 @@ export interface IEnclosureRepository {
   findById(id: string): Promise<any | null>;
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<void>;
+  findAnimalAssociations(enclosureId: string): Promise<any[]>;
+  findActiveAnimalAssociations(enclosureId: string): Promise<any[]>;
+  updateAnimalAssociations(
+    enclosureId: string,
+    data: { dateSortie: Date },
+  ): Promise<void>;
 }
 
 export interface INotificationRepository {
@@ -39,4 +45,5 @@ export interface IDataStore {
   notifications: INotificationRepository;
   config: IConfigRepository;
   users: IUserRepository;
+  transaction<T>(callback: (tx: IDataStore) => Promise<T>): Promise<T>;
 }

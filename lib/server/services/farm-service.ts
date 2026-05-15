@@ -488,7 +488,10 @@ export async function createEnclos(
 
 export async function listEnclos(userId: string): Promise<EnclosView[]> {
   return prisma.enclos.findMany({
-    where: { farmId: farmIdForUser(userId) },
+    where: {
+      farmId: farmIdForUser(userId),
+      status: "ACTIF",
+    },
     include: {
       animauxActuels: {
         where: { dateSortie: null },

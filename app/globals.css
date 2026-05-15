@@ -404,10 +404,15 @@ p {
   width: 100%;
   border: 1px solid var(--field-border);
   border-radius: 16px;
-  background: var(--field-bg);
+  background: var(--surface-faint);
   color: var(--text);
   padding: 0.9rem 1rem;
   outline: none;
+  font-family: inherit;
+  font-size: inherit;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .input::placeholder,
@@ -416,8 +421,10 @@ p {
 }
 
 .select option {
-  background: var(--surface-strong);
+  background: var(--surface-faint);
   color: var(--text);
+  padding: 0.5rem;
+  border-radius: 8px;
 }
 
 .input:focus,

@@ -1,7 +1,11 @@
-// Enclosure service - Single Responsibility: Enclosure management
 import type { IEnclosureService } from "@/lib/interfaces/services";
 import type { IDataStore } from "@/lib/interfaces/repository";
 import type { IAuthorizationService } from "@/lib/interfaces/services";
+import {
+  EnclosureNotFoundError,
+  ForbiddenError,
+  EnclosureNotEmptyError,
+} from "@/lib/server/services/errors"; // ✅ CHANGE ICI
 
 export class EnclosureService implements IEnclosureService {
   constructor(
@@ -15,7 +19,7 @@ export class EnclosureService implements IEnclosureService {
       input.farmId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access to farm");
+      throw new ForbiddenError("Unauthorized access to farm");
     }
 
     const enclosure = await this.dataStore.enclosures.create({
@@ -30,7 +34,7 @@ export class EnclosureService implements IEnclosureService {
   async updateEnclosure(userId: string, enclosureId: string, input: any) {
     const enclosure = await this.dataStore.enclosures.findById(enclosureId);
     if (!enclosure) {
-      throw new Error("Enclosure not found");
+      throw new EnclosureNotFoundError(enclosureId);
     }
 
     const canAccess = await this.authService.canUserAccessEnclosure(
@@ -38,7 +42,7 @@ export class EnclosureService implements IEnclosureService {
       enclosureId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access");
+      throw new ForbiddenError("Unauthorized access");
     }
 
     const updated = await this.dataStore.enclosures.update(enclosureId, {
@@ -49,26 +53,52 @@ export class EnclosureService implements IEnclosureService {
     return updated;
   }
 
-  async deleteEnclosure(userId: string, enclosureId: string) {
+  async deleteEnclosure(userId: string, enclosureId: string): Promise<void> {
+    // 1. Vérifier l'existence
     const enclosure = await this.dataStore.enclosures.findById(enclosureId);
     if (!enclosure) {
-      throw new Error("Enclosure not found");
+      throw new EnclosureNotFoundError(enclosureId);
     }
 
-    const canAccess = await this.authService.canUserAccessEnclosure(
+    // 2. Vérifier les permissions (OWNER ONLY)
+    const canDelete = await this.authService.canUserDeleteEnclosure(
       userId,
       enclosureId,
     );
-    if (!canAccess) {
-      throw new Error("Unauthorized access");
+    if (!canDelete) {
+      throw new ForbiddenError("Only farm owners can delete enclosures");
     }
 
-    await this.dataStore.enclosures.delete(enclosureId);
+    // 3. Vérifier s'il y a des animaux actifs
+    const activeAnimals =
+      await this.dataStore.enclosures.findActiveAnimalAssociations(enclosureId);
+
+    if (activeAnimals.length > 0) {
+      throw new EnclosureNotEmptyError(activeAnimals.length);
+    }
+
+    // 4. Soft delete dans une transaction
+    await this.dataStore.transaction(async (tx) => {
+      // Marquer toutes les associations comme sorties
+      await tx.enclosures.updateAnimalAssociations(enclosureId, {
+        dateSortie: new Date(),
+      });
+
+      // Soft delete l'enclos
+      await tx.enclosures.update(enclosureId, {
+        status: "SUPPRIME",
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
+    });
   }
 
   async listEnclosures(userId: string) {
     return this.dataStore.enclosures.findMany({
-      where: { userId },
+      where: {
+        userId,
+        status: "ACTIF", // 👈 C'EST IMPORTANT
+      },
     });
   }
 
@@ -79,7 +109,7 @@ export class EnclosureService implements IEnclosureService {
   ) {
     const enclosure = await this.dataStore.enclosures.findById(enclosureId);
     if (!enclosure) {
-      throw new Error("Enclosure not found");
+      throw new EnclosureNotFoundError(enclosureId);
     }
 
     const canAccess = await this.authService.canUserAccessEnclosure(
@@ -87,7 +117,7 @@ export class EnclosureService implements IEnclosureService {
       enclosureId,
     );
     if (!canAccess) {
-      throw new Error("Unauthorized access");
+      throw new ForbiddenError("Unauthorized access");
     }
 
     // Verify all animals belong to the user
@@ -97,7 +127,7 @@ export class EnclosureService implements IEnclosureService {
         animalId,
       );
       if (!canAccessAnimal) {
-        throw new Error(`Unauthorized access to animal ${animalId}`);
+        throw new ForbiddenError(`Unauthorized access to animal ${animalId}`);
       }
     }
 

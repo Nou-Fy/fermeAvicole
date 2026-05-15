@@ -1,4 +1,3 @@
-// Service factory - Creates all services with proper dependencies
 import { dataStore } from "@/lib/server/data-store";
 import { AnimalService } from "@/lib/server/services/animal-service";
 import { HealthService } from "@/lib/server/services/health-service";
@@ -49,5 +48,4 @@ class ServiceFactory {
   }
 }
 
-// Singleton instance
 export const services = new ServiceFactory();
