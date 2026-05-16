@@ -4,8 +4,7 @@ import type { IAuthorizationService } from "@/lib/interfaces/services";
 import {
   EnclosureNotFoundError,
   ForbiddenError,
-  EnclosureNotEmptyError,
-} from "@/lib/server/services/errors"; // ✅ CHANGE ICI
+} from "@/lib/server/services/errors";
 
 export class EnclosureService implements IEnclosureService {
   constructor(
@@ -69,17 +68,10 @@ export class EnclosureService implements IEnclosureService {
       throw new ForbiddenError("Only farm owners can delete enclosures");
     }
 
-    // 3. Vérifier s'il y a des animaux actifs
-    const activeAnimals =
-      await this.dataStore.enclosures.findActiveAnimalAssociations(enclosureId);
-
-    if (activeAnimals.length > 0) {
-      throw new EnclosureNotEmptyError(activeAnimals.length);
-    }
-
-    // 4. Soft delete dans une transaction
+    // 3. Soft delete dans une transaction — on désassocie les animaux
+    //    au lieu d'empêcher la suppression quand il y en a.
     await this.dataStore.transaction(async (tx) => {
-      // Marquer toutes les associations comme sorties
+      // Marquer toutes les associations comme sorties (animaux considérés sans enclos)
       await tx.enclosures.updateAnimalAssociations(enclosureId, {
         dateSortie: new Date(),
       });

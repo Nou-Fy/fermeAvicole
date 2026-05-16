@@ -30,7 +30,7 @@ export function Modal({ isOpen, onClose, title, hint, children }: ModalProps) {
             {children}
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button className="button-ghost" onClick={onClose}>
-                Annuler
+                Sortir
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ export interface IAnimalService {
   updateAnimal(userId: string, animalId: string, input: any): Promise<any>;
   deleteAnimal(userId: string, animalId: string): Promise<void>;
   listAnimals(userId: string, query?: any): Promise<any[]>;
+  unassignAnimalsFromEnclosure(enclosureId: string): Promise<void>;
 }
 
 export interface IHealthService {

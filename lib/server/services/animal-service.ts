@@ -79,4 +79,20 @@ export class AnimalService implements IAnimalService {
       take: query?.take,
     });
   }
+
+  async unassignAnimalsFromEnclosure(enclosureId: string): Promise<void> {
+    if (!enclosureId) {
+      throw new Error("Enclosure ID is required");
+    }
+
+    try {
+      // On utilise la méthode déjà présente dans le repository des enclos
+      // pour mettre une date de sortie à toutes les associations actives
+      await this.dataStore.enclosures.updateAnimalAssociations(enclosureId, {
+        dateSortie: new Date(),
+      });
+    } catch (error) {
+      throw new Error("Failed to unassign animals from enclosure");
+    }
+  }
 }

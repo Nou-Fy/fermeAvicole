@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react"; // Ajout de useMemo pour la performance
 import { useDashboard } from "@/components/dashboard/dashboard-provider";
 import { PageHeader, SectionCard } from "@/components/ui";
 import Link from "next/link";
@@ -9,13 +9,22 @@ import { Modal } from "@/components/ui/Modal";
 import { EnclosAssignForm } from "@/components/enclos/EnclosAssignForm";
 import { EnclosClimateForm } from "@/components/enclos/EnclosClimateForm";
 import { EnclosList } from "@/components/enclos/EnclosList";
+import { EnclosAnimals } from "@/components/enclos/EnclosAnimals";
 
 export default function ElevageEnclosPage() {
   const { data, loading, error, pending, submitAction } = useDashboard() as any;
-  const [activeModal, setActiveModal] = useState<"assign" | "climate" | null>(
-    null,
-  );
+
+  // 1. On étend le type de la modale pour inclure 'view'
+  const [activeModal, setActiveModal] = useState<
+    "assign" | "climate" | "view" | null
+  >(null);
   const [selectedEnclosId, setSelectedEnclosId] = useState<string | null>(null);
+
+  // 2. On récupère l'objet complet de l'enclos sélectionné pour afficher ses détails
+  const selectedEnclos = useMemo(
+    () => data?.enclos?.find((e: any) => e.id === selectedEnclosId),
+    [data, selectedEnclosId],
+  );
 
   if (loading && !data)
     return (
@@ -30,7 +39,8 @@ export default function ElevageEnclosPage() {
       </div>
     );
 
-  const handleAction = (id: string, type: "assign" | "climate") => {
+  // 3. Mise à jour du handler pour accepter l'action "view"
+  const handleAction = (id: string, type: "assign" | "climate" | "view") => {
     setSelectedEnclosId(id);
     setActiveModal(type);
   };
@@ -62,14 +72,24 @@ export default function ElevageEnclosPage() {
         </SectionCard>
       </div>
 
-      {/* Modal Affectation - L'enclos est "verrouillé" par l'ID passé en prop */}
+      {/* 4. Nouvelle Modal pour afficher les ANIMAUX */}
+      <Modal
+        isOpen={activeModal === "view"}
+        onClose={close}
+        title={`Animaux dans ${selectedEnclos?.nom || "l'enclos"}`}>
+        <div className="stack">
+          <EnclosAnimals animals={selectedEnclos?.animauxActuels} />
+        </div>
+      </Modal>
+
+      {/* Modal Affectation */}
       <Modal
         isOpen={activeModal === "assign"}
         onClose={close}
         title="Affecter un animal">
         <EnclosAssignForm
           data={data}
-          enclosId={selectedEnclosId} // <-- On passe l'enclos choisi
+          enclosId={selectedEnclosId}
           pending={pending}
           submitAction={async (url, method, body, msg) => {
             const ok = await submitAction(url, method, body, msg);
@@ -86,7 +106,7 @@ export default function ElevageEnclosPage() {
         title="Mettre à jour le climat">
         <EnclosClimateForm
           data={data}
-          enclosId={selectedEnclosId} // <-- On passe l'enclos choisi
+          enclosId={selectedEnclosId}
           pending={pending}
           submitAction={async (url, method, body, msg) => {
             const ok = await submitAction(url, method, body, msg);
