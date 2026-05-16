@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { StatusBadge } from "@/components/ui";
+import { EnclosDelete } from "./EnclosDelete";
 
 interface Enclos {
   id: string;
@@ -15,60 +16,49 @@ interface Enclos {
 
 interface EnclosListProps {
   items: Enclos[];
-  onAction: (enclosId: string, type: "assign" | "climate") => void;
-  onDelete?: () => void; // ✅ Callback pour rafraîchir
+  // ✅ Ajout du type "view" ici
+  onAction: (enclosId: string, type: "assign" | "climate" | "view") => void;
+  onDelete?: () => void;
 }
 
 export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
   const [enclosToDelete, setEnclosToDelete] = useState<Enclos | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // ✅ On synchronise localItems avec les props "items" pour que la liste se mette à jour
   const [localItems, setLocalItems] = useState<Enclos[]>(items);
 
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
   const deleteEnclosure = async (enclosureId: string) => {
-    setIsDeleting(true);
     try {
       const response = await fetch(`/api/enclos/${enclosureId}`, {
         method: "DELETE",
       });
 
       if (!response.ok) {
-        const { error, code } = await response.json();
+        const data = await response.json();
+        const { error, code } = data;
 
         if (code === "ENCLOSURE_NOT_EMPTY") {
           alert(`Impossible: ${error}`);
         } else if (code === "FORBIDDEN") {
           alert("Vous n'avez pas la permission de supprimer cet enclos");
-        } else if (code === "ENCLOSURE_NOT_FOUND") {
-          alert("Cet enclos n'existe pas");
         } else {
           alert(error || "Erreur lors de la suppression");
         }
         return;
       }
 
-      // ✅ SUPPRIME LOCALEMENT DE LA LISTE
       setLocalItems((prev) => prev.filter((e) => e.id !== enclosureId));
       setEnclosToDelete(null);
-
-      // ✅ APPELLE LE CALLBACK SI PRÉSENT
       onDelete?.();
     } catch (error) {
-      console.error("Network error:", error);
       alert("Erreur réseau");
-    } finally {
-      setIsDeleting(false);
     }
   };
-
-  const openDeleteModal = (enclos: Enclos) => {
-    setEnclosToDelete(enclos);
-  };
-
-  const confirmDelete = () => {
-    if (!enclosToDelete) return;
-    deleteEnclosure(enclosToDelete.id);
-  };
-
   return (
     <div className="list">
       {localItems.length === 0 && (
@@ -85,27 +75,40 @@ export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
           <div className="split">
             <div className="stack-tiny">
               <p className="text-foreground">
-                <strong>{enclos.nom}</strong> pour les{" "}
-                <strong>{enclos.type}</strong> est placé à :{" "}
-                <span className="text-muted-foreground">
-                  {enclos.localisation || "N/A"}
+                <strong>{enclos.nom}</strong> ({enclos.type})
+                <br />
+                <span className="text-muted-foreground text-sm">
+                  Localisation : {enclos.localisation || "N/A"}
                 </span>
               </p>
             </div>
 
-            <StatusBadge
-              label={`${enclos.animauxActuels?.length || 0}/${enclos.capaciteMax}`}
-              tone={
-                (enclos.animauxActuels?.length || 0) >= enclos.capaciteMax
-                  ? "danger"
-                  : "success"
-              }
-            />
+            <div className="list-item">
+              <StatusBadge
+                label={`${enclos.animauxActuels?.length || 0}/${enclos.capaciteMax}`}
+                tone={
+                  (enclos.animauxActuels?.length || 0) >= enclos.capaciteMax
+                    ? "danger"
+                    : "success"
+                }
+              />
+            </div>
           </div>
 
           <div
             className="dashboard-actions"
-            style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              marginTop: "0.75rem",
+              flexWrap: "wrap",
+            }}>
+            <button
+              className="button-ghost button-small"
+              onClick={() => onAction(enclos.id, "view")}>
+              Voir animaux ({enclos.animauxActuels?.length || 0})
+            </button>
+
             <button
               className="button-ghost button-small"
               onClick={() => onAction(enclos.id, "assign")}
@@ -114,14 +117,16 @@ export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
               }>
               Affecter
             </button>
+
             <button
               className="button-ghost button-small"
               onClick={() => onAction(enclos.id, "climate")}>
               Climat
             </button>
+
             <button
-              onClick={() => openDeleteModal(enclos)}
-              className="button-ghost button-small text-red-600 hover:text-red-700"
+              onClick={() => setEnclosToDelete(enclos)}
+              className="button-ghost button-small text-red-600"
               disabled={isDeleting}>
               Supprimer
             </button>
@@ -129,37 +134,13 @@ export function EnclosList({ items, onAction, onDelete }: EnclosListProps) {
         </div>
       ))}
 
-      {/* Modal */}
-      <Modal
+      {/* Modal de suppression */}
+      <EnclosDelete
+        enclos={enclosToDelete}
         isOpen={enclosToDelete !== null}
         onClose={() => setEnclosToDelete(null)}
-        title="Supprimer l'enclos"
-        hint="Action irréversible">
-        <div className="stack">
-          <p>
-            Êtes-vous sûr de vouloir supprimer l&apos;enclos{" "}
-            <strong>&ldquo;{enclosToDelete?.nom}&rdquo;</strong> ?
-          </p>
-          <p className="text-sm text-red-600">
-            Cette action est définitive et ne peut pas être annulée.
-          </p>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "0.75rem",
-              marginTop: "1.5rem",
-            }}>
-            <button
-              className="button-ghost button-small"
-              onClick={confirmDelete}
-              disabled={isDeleting}>
-              {isDeleting ? "Suppression en cours..." : "Oui, supprimer"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        onConfirm={deleteEnclosure}
+      />
     </div>
   );
 }

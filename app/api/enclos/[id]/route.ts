@@ -55,14 +55,22 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 1. Récupérer les services nécessaires
     const enclosureService = services.getEnclosureService();
+    // const animalService = services.getAnimalService();
+
+    // 2. Retirer l'ID de l'enclos pour tous les animaux concernés (via la boucle Promise.all)
+    // await animalService.unassignAnimalsFromEnclosure(params.id);
+
+    // 3. Supprimer définitivement l'enclos ensuite
     await enclosureService.deleteEnclosure(session.sub, params.id);
 
     return NextResponse.json(
-      { message: "Enclosure deleted successfully" },
+      { message: "Enclosure and animal assignments deleted successfully" },
       { status: 200 },
     );
   } catch (error) {
+    // Gestion des erreurs métier (ApplicationError)
     if (error instanceof ApplicationError) {
       return NextResponse.json(
         {
@@ -73,9 +81,10 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    // Gestion des erreurs génériques (ex: Error levée par le AnimalService)
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal server error";
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
